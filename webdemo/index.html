@@ -50,16 +50,45 @@
         overflow: hidden;
       }
 
+      /* Remove existing h1 styles if any */
       h1 {
         margin: 0;
-        padding: 20px 0;
-        background-color: #1e1e1e;
-        color: #ffffff;
-        text-align: center;
         font-size: 2rem;
         font-weight: bold;
         letter-spacing: 0.5px;
+        color: #ffffff;
+      }
+
+      /* New styles for the top bar */
+      .top-bar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #1e1e1e;
+        padding: 0 20px;
+        height: 80px;
         box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      /* Styles for the GitHub button */
+      .top-bar .github-button {
+        position: absolute;
+        left: 20px;
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 1rem;
+        font-weight: bold;
+        font-family: "0xProto", sans-serif;
+      }
+
+      /* Adjust h1 within the top bar */
+      .top-bar h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: bold;
+        letter-spacing: 0.5px;
+        color: #ffffff;
       }
 
       .container {
@@ -165,7 +194,18 @@
     </style>
   </head>
   <body>
-    <h1>Gismo Online Compiler</h1>
+    <div class="top-bar">
+      <a
+        href="https://github.com/CakeOfPain/GismoProgrammingLanguage"
+        target="_blank"
+        class="github-button"
+      >
+        <img
+          src="https://img.icons8.com/ios11/512/FFFFFF/github.png"
+          width="50"
+      /></a>
+      <h1>Gismo Online Compiler</h1>
+    </div>
     <div class="container">
       <div class="editor-container">
         <div class="header">
