@@ -19,23 +19,23 @@
     <style>
       /* Font Definitions */
       @font-face {
-        font-family: '0xProto';
-        src: url('https://raw.githubusercontent.com/0xType/0xProto/main/fonts/0xProto-Regular.ttf')
-          format('truetype');
+        font-family: "0xProto";
+        src: url("https://raw.githubusercontent.com/0xType/0xProto/main/fonts/0xProto-Regular.ttf")
+          format("truetype");
         font-weight: normal;
         font-style: normal;
       }
       @font-face {
-        font-family: '0xProto';
-        src: url('https://raw.githubusercontent.com/0xType/0xProto/main/fonts/0xProto-Bold.ttf')
-          format('truetype');
+        font-family: "0xProto";
+        src: url("https://raw.githubusercontent.com/0xType/0xProto/main/fonts/0xProto-Bold.ttf")
+          format("truetype");
         font-weight: bold;
         font-style: normal;
       }
       @font-face {
-        font-family: '0xProto';
-        src: url('https://raw.githubusercontent.com/0xType/0xProto/main/fonts/0xProto-Italic.ttf')
-          format('truetype');
+        font-family: "0xProto";
+        src: url("https://raw.githubusercontent.com/0xType/0xProto/main/fonts/0xProto-Italic.ttf")
+          format("truetype");
         font-weight: normal;
         font-style: italic;
       }
@@ -203,9 +203,9 @@ println("1+2 equals " + (1 + 2))`,
 
       function runCompiler() {
         outputElement.textContent = "";
-        const code = editor.getValue();
+        let code = editor.getValue();
         if (code.trim() === "") {
-          code = "\n"
+          code = "\n";
         }
 
         go.env = go.env || {};
@@ -223,7 +223,11 @@ println("1+2 equals " + (1 + 2))`,
           return buf.length;
         };
 
-        WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject)
+        fetch(
+          "https://raw.githubusercontent.com/CakeOfPain/GismoProgrammingLanguage/main/webdemo/main.wasm"
+        )
+          .then((response) => response.arrayBuffer())
+          .then((bytes) => WebAssembly.instantiate(bytes, go.importObject))
           .then((result) => {
             go.run(result.instance);
           })
