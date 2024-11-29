@@ -12,34 +12,41 @@ import (
 )
 
 func main() {
-	// Ensure a file argument is passed
-	if len(os.Args) < 2 {
-		log.Fatal("Usage: gismo <file-path>")
+	file := "ENVIRONMENT"
+	code := os.Getenv("GISMO_CODE")
+
+	if code == "" {
+		// Ensure a file argument is passed
+		if len(os.Args) < 2 {
+			log.Fatal("Usage: gismo <file-path>")
+		}
+
+		// Read file content
+		file = os.Args[1]
+		text, err := os.ReadFile(file)
+		if err != nil {
+			log.Fatalf("Failed to read file '%s': %v", file, err)
+		}
+
+		code = string(text)
 	}
 
-	// Read file content
-	file := os.Args[1]
-	text, err := os.ReadFile(file)
-	if err != nil {
-		log.Fatalf("Failed to read file '%s': %v", file, err)
-	}
-
-	before, err := os.ReadFile(config.BeforePath)
-	if err != nil {
-		log.Fatalf("Failed to read file '%s': %v", config.BeforePath, err)
-	}
-
-	after, err := os.ReadFile(config.AfterPath)
-	if err != nil {
-		log.Fatalf("Failed to read file '%s': %v", config.AfterPath, err)
-	}
+	before, _ := os.ReadFile(config.BeforePath)
+	after, _ := os.ReadFile(config.AfterPath)
 
 	// Tokenize the file content
-	tokens :=  tokenizer.Tokenize(string(before), file)
-	tokens = append(tokens, &tokenizer.Token{TokenType: tokentype.Newline,})
-	tokens = append(tokens, tokenizer.Tokenize(string(text), file)...)
-	tokens = append(tokens, &tokenizer.Token{TokenType: tokentype.Newline,})
-	tokens = append(tokens, tokenizer.Tokenize(string(after), file)...)
+	tokens := []*tokenizer.Token{}
+	if before != nil {
+		tokens = append(tokens, tokenizer.Tokenize(string(before), file)...)
+		tokens = append(tokens, &tokenizer.Token{TokenType: tokentype.Newline,})
+	}
+	
+	tokens = append(tokens, tokenizer.Tokenize(code, file)...)
+
+	if after != nil {
+		tokens = append(tokens, &tokenizer.Token{TokenType: tokentype.Newline,})
+		tokens = append(tokens, tokenizer.Tokenize(string(after), file)...)
+	}
 
 	// Parse the tokens into an AST
 	ast := parser.Parse(tokens, file)
