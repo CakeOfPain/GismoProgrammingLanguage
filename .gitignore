@@ -24,3 +24,6 @@ go.work
 
 # Visual Studio Code
 .vscode
+
+.DS_Store
+webdemo/.DS_Store

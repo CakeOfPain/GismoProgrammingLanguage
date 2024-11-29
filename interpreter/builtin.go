@@ -26,6 +26,7 @@ var Builtins = []BuiltinFunction{
     {callback: typeof, identifier: "$TYPEOF"},
     {callback: untype, identifier: "$UNTYPE"},
     {callback: quote, identifier: "$QUOTE"},
+    {callback: replace, identifier: "$REPLACE"},
     {callback: eval, identifier: "$EVAL"},
     {callback: lambda, identifier: "$LAMBDA"},
     {callback: catString, identifier: "$CAT"},
@@ -191,6 +192,18 @@ func untype(args Value, scope *Scope) Value {
 
 func quote(args Value, scope *Scope) Value {
 	return args
+}
+
+func replace(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    expression := argsList[0]
+    symbol := argsList[1]
+    replacement := argsList[2]
+
+    if symbol, ok := symbol.(*Symbol); ok {
+        return subSymbol(expression, symbol, replacement, false)
+    }
+    return &Nil{}
 }
 
 func eval(args Value, scope *Scope) Value {
