@@ -17,8 +17,32 @@ int < int ::= $GREATER($2, $1)
 (-int) ::= $SUB(0, $1)
 (+int) ::= $1
 string(int) ::= $CHAR($1, $2)
-
 symbol -> (*) ::= $LAMBDA($1, $2)
+
+namespace ::= $TYPEDEF(0, namespace)
+
+namespace{*} ::= {
+	$TYPEDEF($QUOTE($2), Namespace)
+}
+
+ConsCell + ConsCell ::= {
+  appending ::= $2
+	traverser ::= $LAMBDA(x, {
+		$IF($TYPEOF(x, Nil), {
+      appending
+   	}, {
+      $CONS($CAR(x), traverser($CDR(x)))
+    })
+	})
+  traverser($QUOTE($1))
+}
+
+Namespace.(*) ::= {
+  body ::= $UNTYPE($1)
+	comb ::= body + $CONS($QUOTE($2), $NIL())
+	$EVAL(comb)
+}
+
 
 ConsCell(int) ::= $IF($2 < 1, $CAR($QUOTE($1)), $CDR($QUOTE($1))($2-1))
 

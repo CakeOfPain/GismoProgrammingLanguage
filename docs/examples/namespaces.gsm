@@ -1,0 +1,31 @@
+namespace ::= $TYPEDEF(0, namespace)
+
+namespace{*} ::= {
+	$TYPEDEF($QUOTE($2), Namespace)
+}
+
+ConsCell + ConsCell ::= {
+  appending ::= $2
+	traverser ::= $LAMBDA(x, {
+		$IF($TYPEOF(x, Nil), {
+      appending
+   	}, {
+      $CONS($CAR(x), traverser($CDR(x)))
+    })
+	})
+  traverser($QUOTE($1))
+}
+
+Namespace.(*) ::= {
+  body ::= $UNTYPE($1)
+	comb ::= body + $CONS($QUOTE($2), $NIL())
+	$EVAL(comb)
+}
+
+std ::= namespace {
+  println ::= $PRINTLN
+  quote ::= $QUOTE
+}
+
+std.println("Hello World!")
+std.println(std.quote("Hi"))
