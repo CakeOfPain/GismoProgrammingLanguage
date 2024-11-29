@@ -196,13 +196,14 @@ func quote(args Value, scope *Scope) Value {
 
 func replace(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
-    expression := argsList[0]
+    expression := interpretExpression(argsList[0], scope)
     symbol := argsList[1]
-    replacement := argsList[2]
+    replacement := interpretExpression(argsList[2], scope)
 
     if symbol, ok := symbol.(*Symbol); ok {
         return subSymbol(expression, symbol, replacement, false)
     }
+
     return &Nil{}
 }
 
@@ -343,7 +344,10 @@ func def(args Value, scope *Scope) Value {
 
 func write2Output(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
-    config.OutputFile.WriteString(interpretExpression(argsList[0], scope).String())
+    message := interpretExpression(argsList[0], scope).String()
+    if config.OutputEnabled {
+        config.OutputFile.WriteString(message)
+    }
     return &Nil{}
 }
 
@@ -351,7 +355,7 @@ func write2Output(args Value, scope *Scope) Value {
 func writeByte2Output(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
     result := interpretExpression(argsList[0], scope)
-    if number, ok := result.(*Integer); ok {
+    if number, ok := result.(*Integer); ok && config.OutputEnabled {
         config.OutputFile.Write([]byte{byte(number.Value)})
     }
     return &Nil{}

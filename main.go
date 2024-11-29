@@ -14,6 +14,7 @@ import (
 func main() {
 	file := "ENVIRONMENT"
 	code := os.Getenv("GISMO_CODE")
+	config.OutputEnabled = os.Getenv("NO_OUT") == ""
 
 	if code == "" {
 		// Ensure a file argument is passed
@@ -40,7 +41,7 @@ func main() {
 		tokens = append(tokens, tokenizer.Tokenize(string(before), file)...)
 		tokens = append(tokens, &tokenizer.Token{TokenType: tokentype.Newline,})
 	}
-	
+
 	tokens = append(tokens, tokenizer.Tokenize(code, file)...)
 
 	if after != nil {
