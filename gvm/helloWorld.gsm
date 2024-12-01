@@ -1,0 +1,8 @@
+
+helloWorld: text = "Hello World!"
+
+main: func = {
+    lct(helloWorld)
+    put()
+    nwl()
+}

@@ -1,0 +1,36 @@
+
+one: num8 = 1
+zero: num8 = 0
+
+main: func = {
+    arguments: cmplx
+    lda(0)
+    slc(arguments)
+
+    i: num8
+    lc1(zero)
+    sl1(i)
+
+    loop {
+        llc(arguments)
+        ll1(i)
+        lde()
+        slc(arguments)
+        put()
+        nwl()
+
+
+        ll1(i)
+        lc1(one)
+        adu()
+        sl1(i)
+
+        ll1(i)
+        llc(arguments)
+        lnc()
+        slc(arguments)
+        equ()
+
+        jpaf(loop)
+    }
+}
