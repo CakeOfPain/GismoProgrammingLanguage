@@ -1,5 +1,52 @@
 package interpreter
 
+import (
+	"strconv"
+
+	"gismolang.org/compiler/parser"
+	"gismolang.org/compiler/tokenizer/tokentype"
+)
+
+
+func syntaxNode2Value(expression *parser.SyntaxNode) Value {
+    if(expression.Value != nil) {
+        switch(expression.Value.TokenType) {
+        case tokentype.Number:
+            value, _ := strconv.ParseInt(expression.Value.Value, 10, 64)
+            return &Integer{
+                Value: value,
+            }
+        case tokentype.String:
+            return &String{
+                Value: expression.Value.Value,
+            }
+        case tokentype.Operator, tokentype.Identifier, tokentype.LParent, tokentype.LCurlyParent:
+            return &Symbol{
+                Value: expression.Value.Alias,
+            }
+        case tokentype.Module:
+            return &Symbol{
+                Value: expression.Value.Alias,
+            }
+        }
+        // OTHERWISE (SHOULD NOT HAPPEN)
+        return &Nil{}
+    }
+
+    var arguments Value = &Nil{}
+    for i := len(expression.Arguments)-1; i>=0; i-- {
+        arg := expression.Arguments[i]
+        arguments = &ConsCell{
+            Car: syntaxNode2Value(arg),
+            Cdr: arguments,
+        }
+    }
+
+    return &ConsCell{
+        Car: syntaxNode2Value(expression.Operator),
+        Cdr: arguments,
+    }
+}
 
 func subSymbol(value Value, sym *Symbol, sub Value, limited bool) Value {
     switch v := value.(type) {

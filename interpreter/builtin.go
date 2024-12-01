@@ -2,8 +2,11 @@ package interpreter
 
 import (
 	"fmt"
+	"os"
 
 	"gismolang.org/compiler/config"
+	"gismolang.org/compiler/parser"
+	"gismolang.org/compiler/tokenizer"
 )
 
 var Builtins = []BuiltinFunction{
@@ -41,6 +44,7 @@ var Builtins = []BuiltinFunction{
     {callback: def, identifier: "$DEF"},
     {callback: write2Output, identifier: "$WRITE"},
     {callback: writeByte2Output, identifier: "$WRITEB"},
+    {callback: loadFile, identifier: "$LOAD"},
     {callback: niler, identifier: "$NIL"},
 }
 
@@ -363,4 +367,16 @@ func writeByte2Output(args Value, scope *Scope) Value {
 
 func niler(args Value, scope *Scope) Value {
     return &Nil{}
+}
+
+func loadFile(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    source := argsList[0].String()
+    bytes, ok := os.ReadFile(source)
+    if ok != nil{
+        return &Nil{}
+    }
+    tokens := tokenizer.Tokenize(string(bytes), source)
+    ast := parser.Parse(tokens, source)
+    return syntaxNode2Value(ast)
 }
