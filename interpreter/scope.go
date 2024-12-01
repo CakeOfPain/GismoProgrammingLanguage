@@ -114,7 +114,7 @@ func generateKey(value Value) string {
 	switch v := value.(type) {
 	case *ConsCell:
 		key := v.Car.String()
-		arglen := v.length()-1
+		arglen := v.Length()-1
 		for i:=0; i < arglen; i++ {
 			arg := v.Get(i+1)
 			key += " " + arg.String()

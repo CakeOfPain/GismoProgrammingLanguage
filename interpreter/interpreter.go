@@ -21,7 +21,7 @@ func interpretModule(value Value) {
     }
 
     if consCell, ok := value.(*ConsCell); ok {
-        length := consCell.length()
+        length := consCell.Length()
         for i:=1; i < length; i++ {
             arg := consCell.Get(i);
             interpretExpression(arg, scope);
@@ -36,7 +36,7 @@ func interpretExpression(value Value, scope *Scope) Value {
         switch operator {
         case "@callCurly":
             var result Value = &Nil{}
-            arglen := v.length()
+            arglen := v.Length()
             for i:=2; i < arglen; i++ {
                 result = &ConsCell{
                     Car: v.Get(2+arglen-i-1),
@@ -67,10 +67,10 @@ func interpretExpression(value Value, scope *Scope) Value {
         case "::=":
             scope.Define(v.Get(1), v.Get(2))
             return &Nil{}
-        case "@begin":
+        case "@begin", "Module":
             var result Value = &Nil{}
             newScope := NewScope(scope)
-            arglen := v.length()
+            arglen := v.Length()
             for i:=1; i < arglen; i++ {
                 result = interpretExpression(v.Get(i), newScope)
             }

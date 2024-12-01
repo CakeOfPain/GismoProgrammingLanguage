@@ -124,9 +124,9 @@ func (fn Nil) GetTypeString() string {
     return "Nil"
 }
 
-func (consCell *ConsCell) length() int {
+func (consCell *ConsCell) Length() int {
     if consCell, ok := consCell.Cdr.(*ConsCell); ok {
-        return consCell.length() + 1
+        return consCell.Length() + 1
     }
     return 1
 }

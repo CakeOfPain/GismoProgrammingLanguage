@@ -43,6 +43,13 @@ Namespace.(*) ::= {
 	$EVAL(comb)
 }
 
+Namespace(*) ::= $1 . ($2)
+Namespace{*} ::= $1 . ($2)
+
+include ::= $TYPEDEF(0, include)
+include(string) ::= namespace {
+    $LOAD($2)
+}
 
 ConsCell(int) ::= $IF($2 < 1, $CAR($QUOTE($1)), $CDR($QUOTE($1))($2-1))
 

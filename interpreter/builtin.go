@@ -378,5 +378,13 @@ func loadFile(args Value, scope *Scope) Value {
     }
     tokens := tokenizer.Tokenize(string(bytes), source)
     ast := parser.Parse(tokens, source)
-    return syntaxNode2Value(ast)
+    value := syntaxNode2Value(ast)
+
+    if consCell, ok := value.(*ConsCell); ok {
+        for i := 1; i < consCell.Length(); i++ {
+            interpretExpression(consCell.Get(i), scope)
+        }
+    }
+
+    return &Nil{}
 }
