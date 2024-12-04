@@ -1,0 +1,26 @@
+"functions" =@@ _map
+"strings" =@@ _map
+"stack" =@@ _seq
+
+// FUNCTIONS
+func ::= $TYPEDEF(0, func)
+
+func(*) ::= {
+    $TYPEDEF(_map {
+        "defi": $QUOTE($2)
+    }, funcDef)
+}
+
+funcDef{*} ::= {
+    $TYPEDEF($UNTYPE($1) {
+        "body": $QUOTE($2)
+    }, funcDefBody)
+}
+
+symbol := funcDefBody ::= {
+    "functions" =@@ @@"functions" {
+        $CAT($1, ""): $UNTYPE($2) {
+            "name": $CAT($1, "")
+        }
+    }
+}
