@@ -46,6 +46,7 @@ var Builtins = []BuiltinFunction{
     {callback: writeByte2Output, identifier: "$WRITEB"},
     {callback: loadFile, identifier: "$LOAD"},
     {callback: niler, identifier: "$NIL"},
+    {callback: exporter, identifier: "$EXPORT"},
 }
 
 func getArgsList(args Value) []Value {
@@ -386,5 +387,13 @@ func loadFile(args Value, scope *Scope) Value {
         }
     }
 
+    return &Nil{}
+}
+
+func exporter(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    key := argsList[0]
+    value := argsList[1]
+    scope.ExportDefinition(key, value)
     return &Nil{}
 }

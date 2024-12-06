@@ -69,11 +69,13 @@ func interpretExpression(value Value, scope *Scope) Value {
             return &Nil{}
         case "@begin", "Module":
             var result Value = &Nil{}
+            scope.AcceptsExports = true
             newScope := NewScope(scope)
             arglen := v.Length()
             for i:=1; i < arglen; i++ {
                 result = interpretExpression(v.Get(i), newScope)
             }
+            scope.AcceptsExports = false
             return result
         }
         result := scope.Get(v, scope)

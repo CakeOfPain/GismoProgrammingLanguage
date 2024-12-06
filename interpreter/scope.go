@@ -14,6 +14,7 @@ type Scope struct {
 	previous *Scope
 	definitions map[string] *Definition
 	locals map[string] Value
+	AcceptsExports bool
 }
 
 func NewScope(previous *Scope) *Scope {
@@ -21,6 +22,15 @@ func NewScope(previous *Scope) *Scope {
 		previous: previous,
 		definitions: make(map[string]*Definition),
 		locals: make(map[string]Value),
+		AcceptsExports: false,
+	}
+}
+
+func (scope *Scope) ExportDefinition(key Value, value Value) {
+	if scope.AcceptsExports {
+		scope.Define(key, value)
+	} else if scope.previous != nil {
+		scope.previous.ExportDefinition(key, value)
 	}
 }
 

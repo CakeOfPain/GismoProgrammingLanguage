@@ -1,31 +1,3 @@
 {
-    ..(@@"functions") map f -> {
-        $WRITELN("export function w $" + f("name") + "()" + "{")
-        $WRITELN("@start")
-        {
-            println ::= $TYPEDEF(0, println)
-            println(string) ::= {
-                foundIndex ::= (@@"strings" ? $2)
-                $IF(foundIndex == -1, {
-                    "strings" =@@ @@"strings" {
-                        $2: _map {
-                            index ::= ?(@@"strings")
-                            "index": index
-                            "value": $2
-                            $WRITELN("\tcall $puts(l $str"+index+")")
-                        }
-                    }
-                }, {
-                    $WRITELN("\tcall $puts(l $str"+foundIndex+")")
-                })
-            }
-
-            $EVAL(f("body"))
-        }
-        $WRITELN("\tret 0\n}")
-    }
-
-    ..(@@"strings") map s -> {
-        $WRITELN("data $str" + s("index") + " = {b \"" + s("value") + "\", w 0}")
-    }
+    
 }

@@ -1,8 +1,7 @@
 
-helloWorld: text = "Hello World!"
+one: num8 = 1
 
-main: func = {
-    lct(helloWorld)
-    put()
-    nwl()
+main: func = asm {
+    lc1(one)
+    putu()
 }
