@@ -47,6 +47,8 @@ var Builtins = []BuiltinFunction{
     {callback: loadFile, identifier: "$LOAD"},
     {callback: niler, identifier: "$NIL"},
     {callback: exporter, identifier: "$EXPORT"},
+    {callback: whiler, identifier: "$WHILE"},
+    {callback: arger, identifier: "$ARG"},
 }
 
 func getArgsList(args Value) []Value {
@@ -395,5 +397,26 @@ func exporter(args Value, scope *Scope) Value {
     key := argsList[0]
     value := argsList[1]
     scope.ExportDefinition(key, value)
+    return &Nil{}
+}
+
+func whiler(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    cond := argsList[0]
+    body := argsList[1]
+    for interpretExpression(cond, scope).GetTypeString() != "Nil" {
+        interpretExpression(body, scope)
+    }
+    return &Nil{}
+}
+
+func arger(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    arguments := interpretExpression(argsList[0], scope)
+    indexValue := interpretExpression(argsList[1], scope)
+    if index, ok := indexValue.(*Integer); ok {
+        valueArgumentList := getArgsList(arguments)
+        return valueArgumentList[index.Value]
+    }
     return &Nil{}
 }

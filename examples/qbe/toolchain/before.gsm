@@ -10,7 +10,9 @@ int | int ::= $BWO($1, $2)
 string + string ::= $CAT($1, $2)
 string + int ::= $CAT($1, $2)
 int + string ::= $CAT($1, $2)
-int == int ::= $EQUALS($1, $2)
+int == int ::= {
+    $EQUALS($1, $2)
+}
 string == string ::= $EQUALS($1, $2)
 int > int ::= $GREATER($1, $2)
 int < int ::= $GREATER($2, $1)

@@ -1,11 +1,10 @@
 "functions" =@@ _map
 "strings" =@@ _map
-"stack" =@@ _seq
 
 // FUNCTIONS
-func ::= $TYPEDEF(0, func)
+fun ::= $TYPEDEF(0, fun)
 
-func(*) ::= {
+fun(*) ::= {
     $TYPEDEF(_map {
         "defi": $QUOTE($2)
     }, funcDef)
@@ -20,7 +19,18 @@ funcDef{*} ::= {
 symbol := funcDefBody ::= {
     "functions" =@@ @@"functions" {
         $CAT($1, ""): $UNTYPE($2) {
-            "name": $CAT($1, "")
+            "name": $CAT("", $1)
+            "index": $CAT("$", $1)
+            "generated": 0
         }
     }
+    $EXPORT($1, $TYPEDEF((@@"functions")($CAT($1, "")), _FUNCTION))
 }
+
+puts ::= $TYPEDEF(_map {
+    "defi": ""
+    "body": ""
+    "generated": 1
+    "name": "puts"
+    "index": "$puts"
+}, _FUNCTION)

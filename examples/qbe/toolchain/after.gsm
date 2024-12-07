@@ -1,3 +1,93 @@
 {
-    
+    "GENERATING_FUNC" =@@ _seq
+
+    _DEFINE_STRING ::= $TYPEDEF(0, _DEFINE_STRING)
+    _DEFINE_STRING(string) ::= {
+        position ::= @@"strings" ? $2
+
+        $IF(position == -1, {
+            "strings" =@@ (@@"strings") {
+                $2: _map {
+                    "index": ("$str" + ?(@@"strings"))
+                    "data": $2
+                }
+            }
+        }, {})
+    }
+
+    _GENERATE_FUNC ::= $TYPEDEF(0, _GENERATE_FUNC)
+    _GENERATE_FUNC(_Map) ::= {
+        _FUN ::= $2
+        $IF((@@"functions")(_FUN("name"))("generated") == 0, {
+            "functions" =@@ (@@"functions"){
+                _FUN("name"): (@@"functions")(_FUN("name")) {
+                    "generated": 1
+                }
+            }
+
+            $IF(_FUN("name") == "main", {}, {
+                $WRITELN("function " + _FUN("index") + "() {")
+                $WRITELN("@start")
+            })
+
+            _FUNCTION(string) ::= {
+                _FUN ::= $UNTYPE($1)
+                $IF(_FUN("generated") == 0, {
+                    "GENERATING_FUNC" =@@ (@@"GENERATING_FUNC"), _FUN
+                }, {})
+
+                strIndex ::= (@@"strings")?($2)
+                $IF(strIndex == -1, {
+                    _DEFINE_STRING($2)
+                }, {})
+
+
+                str ::= (@@"strings")($2)("index")
+                $WRITELN("\tcall " + _FUN("index") + "(l " + str + ")")
+            }
+
+            _FUNCTION() ::= {
+                _FUN ::= $UNTYPE($1)
+                $IF(_FUN("generated") == 0, {
+                    "GENERATING_FUNC" =@@ (@@"GENERATING_FUNC"), _FUN
+                }, {})
+
+                $WRITELN("\tcall " + _FUN("index") + "()")
+            }
+            
+            $EVAL(_FUN("body"))
+
+
+            $IF(_FUN("name") == "main", {}, {
+                $WRITELN("ret")
+                $WRITELN("}")
+            })
+        }, {})
+    }
+
+
+    _MAIN_INDEX ::= (@@"functions")?"main"
+    $IF(_MAIN_INDEX == -1, {
+        $PRINTLN("gismo: error: no main function was provided!")
+    }, {
+        $WRITELN("export function w $main() {")
+        $WRITELN("@start")
+
+        _GENERATE_FUNC($UNTYPE(main))
+        
+        $WRITELN("\tret 0")
+        $WRITELN("}")
+    })
+
+    $WHILE(?(@@"GENERATING_FUNC") > 0, {
+        toGenerate ::= @@"GENERATING_FUNC"
+        "GENERATING_FUNC" =@@ _seq
+        toGenerate map f -> {
+            _GENERATE_FUNC(f)
+        }
+    })
+
+    ..(@@"strings") map s -> {
+        $WRITELN("data " + s("index") + " = { b \"" + s("data") + "\", b 0}")
+    }
 }
