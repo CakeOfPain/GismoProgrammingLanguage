@@ -24,7 +24,7 @@ var NoneToken = &Token{
 	Source:    "Unknown",
 	Pos:       0,
 	Value:     "",
-	Alias: "",
+	Alias:     "",
 	BinPrec:   0,
 }
 
@@ -63,7 +63,7 @@ var binaryPrecedences = []struct {
 	operator   string
 	precedence int
 }{
-	{"::=", 1}, {"=>", 4}, {"->", 4}, {"<<", 11}, {">>", 11}, {"<=", 10}, {">=", 10},
+	{"::=", 1}, {"=>", 4}, {"->", 15}, {"<<", 11}, {">>", 11}, {"<=", 10}, {">=", 10},
 	{"==", 9}, {"!=", 9}, {"&&", 6}, {"||", 5}, {"+=", 3}, {"-=", 3}, {"*=", 3},
 	{"/=", 3}, {"%=", 3}, {"#=", 3}, {":=", 3},  {"@", 18}, {".", 17}, {"+", 13}, {"-", 13},
 	{"*", 14}, {"/", 14}, {"%", 14}, {",", 4}, {":", 15}, {"=", 3}, {"<", 10}, {">", 10},
@@ -71,6 +71,7 @@ var binaryPrecedences = []struct {
 }
 
 const FunctionCallPrecedence = 16
+const CurlyCallPrecedence = 14
 
 // Tokenize converts the input code into a list of tokens.
 func Tokenize(code string, source string) []*Token {

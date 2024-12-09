@@ -1,0 +1,10 @@
+#include <stdio.h>
+const int pi = 31416;
+const int pi2 = pi;
+void printHelloWorld() {
+	printHelloWorld();
+}
+int blubber();
+int main() {
+	printHelloWorld();
+}

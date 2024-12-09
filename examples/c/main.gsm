@@ -1,0 +1,20 @@
+
+pi := 31416
+pi2 := pi
+
+helloWorld := "Hello World!"
+another := helloWorld
+
+printHelloWorld := function() {
+    printHelloWorld()
+}
+
+blubber := function() -> int
+main := function() -> int {
+    printHelloWorld()
+}
+
+// add of type function(int, int, int)
+add := function(a: int, b: int) -> int {
+    a + b
+}

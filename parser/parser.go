@@ -86,7 +86,7 @@ func parseExpression(r *TokenReader, parentPrecedence int) *SyntaxNode {
 
 		// Handle curly function calls with higher precedence
         if r.PeekNext(0).TokenType == tokentype.LCurlyParent {
-            precedence := tokenizer.FunctionCallPrecedence // Assign higher precedence than dot operator
+            precedence := tokenizer.CurlyCallPrecedence // Assign higher precedence than dot operator
             if precedence < parentPrecedence {
                 break
             }

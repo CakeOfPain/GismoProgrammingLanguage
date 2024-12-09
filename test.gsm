@@ -1,0 +1,19 @@
+
+vec ::= $LAMBDA(size, $VECTOR(size))
+Vector(int) ::= $VECTOR_GET($1, $2)
+Vector <- (*) ::= $TYPEDEF($CONS($1, $2), VectorSet)
+VectorSet for int ::= {
+    vector ::= $CAR($UNTYPE($1))
+    value ::= $CDR($UNTYPE($1))
+    index ::= $2
+    $VECTOR_SET(vector, index, value)
+    vector
+}
+?Vector ::= $VECTOR_LEN($1)
+Vector scale int ::= $VECTOR_RESIZE($1, $2)
+
+myVector ::= vec(2)
+$PRINTLN(myVector <- 2 for 1)
+$PRINTLN(myVector <- 1 for 0)
+$PRINTLN(myVector?)
+$PRINTLN(myVector scale 100)

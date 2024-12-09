@@ -49,6 +49,12 @@ var Builtins = []BuiltinFunction{
     {callback: exporter, identifier: "$EXPORT"},
     {callback: whiler, identifier: "$WHILE"},
     {callback: arger, identifier: "$ARG"},
+
+    {callback: vectorCreate, identifier: "$VECTOR"},
+    {callback: vectorGet, identifier: "$VECTOR_GET"},
+    {callback: vectorSet, identifier: "$VECTOR_SET"},
+    {callback: vectorLen, identifier: "$VECTOR_LEN"},
+    {callback: vectorResize, identifier: "$VECTOR_RESIZE"},
 }
 
 func getArgsList(args Value) []Value {
@@ -417,6 +423,122 @@ func arger(args Value, scope *Scope) Value {
     if index, ok := indexValue.(*Integer); ok {
         valueArgumentList := getArgsList(arguments)
         return valueArgumentList[index.Value]
+    }
+    return &Nil{}
+}
+
+// Define a new Vector type
+
+type Vector struct {
+    Elements []Value
+}
+
+func (v *Vector) GetTypeString() string {
+    return "Vector"
+}
+
+func (v *Vector) String() string {
+    str := "["
+    for i, el := range v.Elements {
+        str += el.String()
+        if i < len(v.Elements)-1 {
+            str += ", "
+        }
+    }
+    str += "]"
+    return str
+}
+
+// If you have a method to get length or other attributes, you can add them.
+// For now, the main interface methods are enough.
+
+func (v *Vector) Length() int {
+    return len(v.Elements)
+}
+
+// Now define the built-in vector functions
+
+func vectorCreate(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    // Expecting a single integer argument for size
+    sizeVal := interpretExpression(argsList[0], scope)
+    if sizeInt, ok := sizeVal.(*Integer); ok {
+        elements := make([]Value, sizeInt.Value)
+        for i := range elements {
+            elements[i] = &Nil{}
+        }
+        return &Vector{
+            Elements: elements,
+        }
+    }
+    return &Nil{}
+}
+
+func vectorGet(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    vecVal := interpretExpression(argsList[0], scope)
+    idxVal := interpretExpression(argsList[1], scope)
+    if vec, ok := vecVal.(*Vector); ok {
+        if idx, ok := idxVal.(*Integer); ok {
+            if idx.Value >= 0 && idx.Value < int64(len(vec.Elements)) {
+                return vec.Elements[idx.Value]
+            }
+        }
+    }
+    return &Nil{}
+}
+
+func vectorSet(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    vecVal := interpretExpression(argsList[0], scope)
+    idxVal := interpretExpression(argsList[1], scope)
+    valueVal := interpretExpression(argsList[2], scope)
+    if vec, ok := vecVal.(*Vector); ok {
+        if idx, ok := idxVal.(*Integer); ok {
+            if idx.Value >= 0 && idx.Value < int64(len(vec.Elements)) {
+                vec.Elements[idx.Value] = valueVal
+                return valueVal
+            }
+        }
+    }
+    return &Nil{}
+}
+
+func vectorLen(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    vecVal := interpretExpression(argsList[0], scope)
+    if vec, ok := vecVal.(*Vector); ok {
+        return &Integer{Value: int64(len(vec.Elements))}
+    }
+    return &Nil{}
+}
+
+func vectorResize(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    vecVal := interpretExpression(argsList[0], scope)
+    newSizeVal := interpretExpression(argsList[1], scope)
+    if vec, ok := vecVal.(*Vector); ok {
+        if newSize, ok := newSizeVal.(*Integer); ok {
+            if newSize.Value < 0 {
+                return &Nil{}
+            }
+            oldLen := int64(len(vec.Elements))
+            if newSize.Value == oldLen {
+                return vec
+            }
+            if newSize.Value > oldLen {
+                // Extend with Nil
+                extension := make([]Value, newSize.Value-oldLen)
+                for i := range extension {
+                    extension[i] = &Nil{}
+                }
+                vec.Elements = append(vec.Elements, extension...)
+            } else {
+                // Truncate
+                vec.Elements = vec.Elements[:newSize.Value]
+            }
+            return vec
+        }
     }
     return &Nil{}
 }
