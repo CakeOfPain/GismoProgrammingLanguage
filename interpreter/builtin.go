@@ -9,69 +9,54 @@ import (
 	"gismolang.org/compiler/tokenizer"
 )
 
-var Builtins = []BuiltinFunction{
-    {callback: addInt, identifier: "$ADD"},
-    {callback: subInt, identifier: "$SUB"},
-    {callback: mulInt, identifier: "$MUL"},
-    {callback: divInt, identifier: "$DIV"},
-    {callback: modInt, identifier: "$MOD"},
-    {callback: shiftLeftInt, identifier: "$SHL"},
-    {callback: shiftRightInt, identifier: "$SHR"},
-    {callback: bitwiseAnd, identifier: "$BWA"},
-    {callback: bitwiseOr, identifier: "$BWO"},
-    {callback: construct, identifier: "$CONS"},
-    {callback: car, identifier: "$CAR"},
-    {callback: cdr, identifier: "$CDR"},
-    {callback: printValue, identifier: "$PRINT"},
-    {callback: printlnValue, identifier: "$PRINTLN"},
-    {callback: printScope, identifier: "$SCOPE"},
-    {callback: typedef, identifier: "$TYPEDEF"},
-    {callback: typeof, identifier: "$TYPEOF"},
-    {callback: untype, identifier: "$UNTYPE"},
-    {callback: quote, identifier: "$QUOTE"},
-    {callback: replace, identifier: "$REPLACE"},
-    {callback: eval, identifier: "$EVAL"},
-    {callback: lambda, identifier: "$LAMBDA"},
-    {callback: catString, identifier: "$CAT"},
-    {callback: lenString, identifier: "$STRLEN"},
-    {callback: charString, identifier: "$CHAR"},
-    {callback: stringify, identifier: "$STR"},
-    {callback: ifFunc, identifier: "$IF"},
-    {callback: greater, identifier: "$GREATER"},
-    {callback: equals, identifier: "$EQUALS"},
-    {callback: get, identifier: "$GET"},
-    {callback: set, identifier: "$SET"},
-    {callback: def, identifier: "$DEF"},
-    {callback: write2Output, identifier: "$WRITE"},
-    {callback: writeByte2Output, identifier: "$WRITEB"},
-    {callback: loadFile, identifier: "$LOAD"},
-    {callback: niler, identifier: "$NIL"},
-    {callback: exporter, identifier: "$EXPORT"},
-    {callback: whiler, identifier: "$WHILE"},
-    {callback: arger, identifier: "$ARG"},
-
-    {callback: vectorCreate, identifier: "$VECTOR"},
-    {callback: vectorGet, identifier: "$VECTOR_GET"},
-    {callback: vectorSet, identifier: "$VECTOR_SET"},
-    {callback: vectorLen, identifier: "$VECTOR_LEN"},
-    {callback: vectorResize, identifier: "$VECTOR_RESIZE"},
-}
-
-func getArgsList(args Value) []Value {
-    var values []Value = []Value{}
-
-    if consCell, ok := args.(*ConsCell); ok {
-        if consCell.Get(0).String() == "," {
-            values = append(values, getArgsList(consCell.Get(1))...)
-            values = append(values, consCell.Get(2))
-        } else {
-            values = append(values, args)
-        }
-    } else {
-        values = append(values, args)
+func Builtins() []BuiltinFunction {
+    return []BuiltinFunction{
+        {callback: addInt, identifier: "$ADD"},
+        {callback: subInt, identifier: "$SUB"},
+        {callback: mulInt, identifier: "$MUL"},
+        {callback: divInt, identifier: "$DIV"},
+        {callback: modInt, identifier: "$MOD"},
+        {callback: shiftLeftInt, identifier: "$SHL"},
+        {callback: shiftRightInt, identifier: "$SHR"},
+        {callback: bitwiseAnd, identifier: "$BWA"},
+        {callback: bitwiseOr, identifier: "$BWO"},
+        {callback: construct, identifier: "$CONS"},
+        {callback: car, identifier: "$CAR"},
+        {callback: cdr, identifier: "$CDR"},
+        {callback: printValue, identifier: "$PRINT"},
+        {callback: printlnValue, identifier: "$PRINTLN"},
+        {callback: printScope, identifier: "$SCOPE"},
+        {callback: typedef, identifier: "$TYPEDEF"},
+        {callback: typeof, identifier: "$TYPEOF"},
+        {callback: untype, identifier: "$UNTYPE"},
+        {callback: quote, identifier: "$QUOTE"},
+        {callback: replace, identifier: "$REPLACE"},
+        {callback: eval, identifier: "$EVAL"},
+        {callback: lambda, identifier: "$LAMBDA"},
+        {callback: catString, identifier: "$CAT"},
+        {callback: lenString, identifier: "$STRLEN"},
+        {callback: charString, identifier: "$CHAR"},
+        {callback: stringify, identifier: "$STR"},
+        {callback: ifFunc, identifier: "$IF"},
+        {callback: greater, identifier: "$GREATER"},
+        {callback: equals, identifier: "$EQUALS"},
+        {callback: get, identifier: "$GET"},
+        {callback: set, identifier: "$SET"},
+        {callback: def, identifier: "$DEF"},
+        {callback: write2Output, identifier: "$WRITE"},
+        {callback: writeByte2Output, identifier: "$WRITEB"},
+        {callback: loadFile, identifier: "$LOAD"},
+        {callback: niler, identifier: "$NIL"},
+        {callback: exporter, identifier: "$EXPORT"},
+        {callback: whiler, identifier: "$WHILE"},
+        {callback: flatter, identifier: "$FLATTEN"},
+        {callback: vectorCreate, identifier: "$VECTOR"},
+        {callback: vectorGet, identifier: "$VECTOR_GET"},
+        {callback: vectorSet, identifier: "$VECTOR_SET"},
+        {callback: vectorLen, identifier: "$VECTOR_LEN"},
+        {callback: vectorResize, identifier: "$VECTOR_RESIZE"},
+        {callback: isolator, identifier: "$ISOLATE"},
     }
-
-    return values
 }
 
 func binaryIntOp(args Value, scope *Scope, op func(a, b int64) int64) Value {
@@ -416,51 +401,17 @@ func whiler(args Value, scope *Scope) Value {
     return &Nil{}
 }
 
-func arger(args Value, scope *Scope) Value {
+func flatter(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
-    arguments := interpretExpression(argsList[0], scope)
-    indexValue := interpretExpression(argsList[1], scope)
-    if index, ok := indexValue.(*Integer); ok {
-        valueArgumentList := getArgsList(arguments)
-        return valueArgumentList[index.Value]
+    value := interpretExpression(argsList[0], scope)
+    seperator := interpretExpression(argsList[1], scope)
+    return &Vector{
+        Elements: flattenBySeparator(value, seperator.String()),
     }
-    return &Nil{}
 }
-
-// Define a new Vector type
-
-type Vector struct {
-    Elements []Value
-}
-
-func (v *Vector) GetTypeString() string {
-    return "Vector"
-}
-
-func (v *Vector) String() string {
-    str := "["
-    for i, el := range v.Elements {
-        str += el.String()
-        if i < len(v.Elements)-1 {
-            str += ", "
-        }
-    }
-    str += "]"
-    return str
-}
-
-// If you have a method to get length or other attributes, you can add them.
-// For now, the main interface methods are enough.
-
-func (v *Vector) Length() int {
-    return len(v.Elements)
-}
-
-// Now define the built-in vector functions
 
 func vectorCreate(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
-    // Expecting a single integer argument for size
     sizeVal := interpretExpression(argsList[0], scope)
     if sizeInt, ok := sizeVal.(*Integer); ok {
         elements := make([]Value, sizeInt.Value)
@@ -527,18 +478,22 @@ func vectorResize(args Value, scope *Scope) Value {
                 return vec
             }
             if newSize.Value > oldLen {
-                // Extend with Nil
                 extension := make([]Value, newSize.Value-oldLen)
                 for i := range extension {
                     extension[i] = &Nil{}
                 }
                 vec.Elements = append(vec.Elements, extension...)
             } else {
-                // Truncate
                 vec.Elements = vec.Elements[:newSize.Value]
             }
             return vec
         }
     }
     return &Nil{}
+}
+
+
+func isolator(value Value, scope *Scope) Value {
+    isolatedScope := NewEmptyScope()
+    return interpretExpression(value, isolatedScope)
 }

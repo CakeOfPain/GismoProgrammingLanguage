@@ -140,3 +140,28 @@ func (consCell *ConsCell) Get(index int) Value {
     }
     return &Nil{}
 }
+
+type Vector struct {
+    Elements []Value
+}
+
+func (v *Vector) GetTypeString() string {
+    return "Vector"
+}
+
+func (v *Vector) String() string {
+    str := "["
+    for i, el := range v.Elements {
+        str += el.String()
+        if i < len(v.Elements)-1 {
+            str += ", "
+        }
+    }
+    str += "]"
+    return str
+}
+
+
+func (v *Vector) Length() int {
+    return len(v.Elements)
+}

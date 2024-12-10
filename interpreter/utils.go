@@ -7,7 +7,6 @@ import (
 	"gismolang.org/compiler/tokenizer/tokentype"
 )
 
-
 func syntaxNode2Value(expression *parser.SyntaxNode) Value {
     if(expression.Value != nil) {
         switch(expression.Value.TokenType) {
@@ -78,4 +77,19 @@ func isMacroVariableAssignment(expr *ConsCell) bool {
         }
     }
     return false
+}
+
+func flattenBySeparator(value Value, separator string) []Value {
+    if consCell, ok := value.(*ConsCell); ok {
+        first := consCell.Get(0)
+        if first.GetTypeString() == "symbol" && first.String() == separator {
+            return append(flattenBySeparator(consCell.Get(1), separator), consCell.Get(2))
+        }
+    }
+
+    return []Value{value}
+}
+
+func getArgsList(args Value) []Value {
+    return flattenBySeparator(args, ",")
 }

@@ -26,6 +26,18 @@ func NewScope(previous *Scope) *Scope {
 	}
 }
 
+func NewEmptyScope() *Scope {
+	scope := NewScope(nil)
+
+    for _, builtin := range Builtins() {
+        scope.Define(&Symbol{
+            Value: builtin.identifier,
+        }, builtin)
+    }
+
+	return scope
+}
+
 func (scope *Scope) ExportDefinition(key Value, value Value) {
 	if scope.AcceptsExports {
 		scope.Define(key, value)

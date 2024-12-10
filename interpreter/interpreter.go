@@ -12,13 +12,7 @@ func Interpret(expressions *parser.SyntaxNode) {
 }
 
 func interpretModule(value Value) {
-    scope := NewScope(nil)
-
-    for _, builtin := range Builtins {
-        scope.Define(&Symbol{
-            Value: builtin.identifier,
-        }, builtin)
-    }
+    scope := NewEmptyScope()
 
     if consCell, ok := value.(*ConsCell); ok {
         length := consCell.Length()
