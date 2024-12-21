@@ -1,4 +1,7 @@
 <center><img src="docs/logo/gizmos.jpg"></center>
+
+[![Discord](https://img.shields.io/discord/1320114447292960868.svg?label=Discord&logo=discord&color=7289DA)](https://discord.gg/https://discord.gg/hhpWGzVS)
+
 <center><h1>Gismo Programming Language</h1></center>
 
 [Try It Out Here (Webdemo)](https://gismo-online-compiler.pages.dev/Try)
@@ -127,7 +130,10 @@ Contributions are welcome! Here's how you can help:
 
 ## 📢 Community and Support
 
-Stay tuned for community channels. A Discord server may be created for real-time discussions and support.
+Stay tuned for community channels.
+
+[![Discord](https://img.shields.io/discord/1320114447292960868.svg?label=Discord&logo=discord&color=7289DA)](https://discord.gg/https://discord.gg/hhpWGzVS)
+
 
 ---
 
