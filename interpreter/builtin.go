@@ -56,6 +56,7 @@ func Builtins() []BuiltinFunction {
         {callback: vectorLen, identifier: "$VECTOR_LEN"},
         {callback: vectorResize, identifier: "$VECTOR_RESIZE"},
         {callback: isolator, identifier: "$ISOLATE"},
+        {callback: raiser, identifier: "$RAISE"},
     }
 }
 
@@ -496,4 +497,9 @@ func vectorResize(args Value, scope *Scope) Value {
 func isolator(value Value, scope *Scope) Value {
     isolatedScope := NewEmptyScope()
     return interpretExpression(value, isolatedScope)
+}
+
+func raiser(value Value, scope *Scope) Value {
+    
+    return &Nil{}
 }

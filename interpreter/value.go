@@ -66,7 +66,7 @@ func (fn BuiltinFunction) GetTypeString() string {
 }
 
 func (builtinFunction BuiltinFunction) String() string {
-    return "@buildin:" + builtinFunction.identifier
+    return "@builtin:" + builtinFunction.identifier
 }
 
 type ConsCell struct {
