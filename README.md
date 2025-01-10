@@ -146,5 +146,4 @@ This project is licensed under the [MIT License](LICENSE).
 ## 💡 Feedback
 
 We'd love to hear your thoughts on Gismo! Feel free to open an issue with any feedback, questions, or suggestions.
-
-![gismo](https://github.com/user-attachments/assets/0b8bf36a-f7fa-447d-98c6-4eb2b9c3f50c)
+<img src="https://github.com/user-attachments/assets/0b8bf36a-f7fa-447d-98c6-4eb2b9c3f50c" width="300">
