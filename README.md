@@ -1,4 +1,5 @@
-<center><img src="docs/logo/gizmos.jpg"></center>
+
+<center><img src="https://github.com/user-attachments/assets/0b8bf36a-f7fa-447d-98c6-4eb2b9c3f50c" width="300"></center>
 
 [![Discord](https://img.shields.io/discord/1320114447292960868.svg?label=Discord&logo=discord&color=7289DA)](https://discord.gg/https://discord.gg/hhpWGzVS)
 
@@ -146,5 +147,3 @@ This project is licensed under the [MIT License](LICENSE).
 ## 💡 Feedback
 
 We'd love to hear your thoughts on Gismo! Feel free to open an issue with any feedback, questions, or suggestions.
-
-<img src="https://github.com/user-attachments/assets/0b8bf36a-f7fa-447d-98c6-4eb2b9c3f50c" width="300">
