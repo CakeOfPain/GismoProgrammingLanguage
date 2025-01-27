@@ -1,7 +1,7 @@
 
 <center><img src="https://github.com/user-attachments/assets/0b8bf36a-f7fa-447d-98c6-4eb2b9c3f50c" width="300"></center>
 
-[![Discord](https://img.shields.io/discord/1320114447292960868.svg?label=Discord&logo=discord&color=7289DA)](https://discord.gg/https://discord.gg/hhpWGzVS)
+[![Discord](https://img.shields.io/discord/1320114447292960868.svg?label=Discord&logo=discord&color=7289DA)](https://discord.gg/D3uuNRYZpb)
 
 <center><h1>Gismo Programming Language</h1></center>
 
@@ -133,7 +133,7 @@ Contributions are welcome! Here's how you can help:
 
 Stay tuned for community channels.
 
-[![Discord](https://img.shields.io/discord/1320114447292960868.svg?label=Discord&logo=discord&color=7289DA)](https://discord.gg/https://discord.gg/hhpWGzVS)
+[![Discord](https://img.shields.io/discord/1320114447292960868.svg?label=Discord&logo=discord&color=7289DA)](https://discord.gg/D3uuNRYZpb)
 
 
 ---
