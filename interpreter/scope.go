@@ -77,48 +77,15 @@ func (currentScope *Scope) GetLocal(localKey Value) Value {
 	return currentScope.parentScope.GetLocal(localKey)
 }
 
-// The crucial part is in the ConsCell branch below. We:
-//   1. Interpret the left argument (thus we know its true type).
-//   2. Try a wildcard macro: "macroName leftType *".
-//      - If found, do NOT interpret the right side and immediately process the macro.
-//   3. If no wildcard macro is found, interpret the right argument and try normal type-specific macros.
-//   4. If none matches, print an error and return nil.
 func (currentScope *Scope) Get(lookupValue Value) Value {
 	switch typedValue := lookupValue.(type) {
-
 	case *ConsCell:
 		macroName := typedValue.Car.String()
-		leftVal := interpretExpression(typedValue.Get(1), currentScope)
-		leftTypes := gatherTypeStrings(leftVal)
-
-		// Check for wildcard macro first (right side NOT interpreted).
-		for _, leftType := range leftTypes {
-			keyWildcard := macroName + " " + leftType + " *"
-			if defAny := currentScope.findDefinition(keyWildcard); defAny != nil {
-				return processMacro(defAny.definitionValue, currentScope, leftVal, typedValue.Get(2))
-			}
+		if typedValue.Length() == 2 {
+			return currentScope.applyUnaryMacro(macroName, typedValue.Get(1))
+		} else if typedValue.Length() >= 3 {
+			return currentScope.applyBinaryMacro(macroName, typedValue.Get(1), typedValue.Get(2))
 		}
-
-		// If no wildcard macro was found, interpret the right side
-		rightVal := interpretExpression(typedValue.Get(2), currentScope)
-		rightTypes := gatherTypeStrings(rightVal)
-
-		// Check normal macros with both types known
-		for _, leftType := range leftTypes {
-			for _, rightType := range rightTypes {
-				keyFull := macroName + " " + leftType + " " + rightType
-				if defFull := currentScope.findDefinition(keyFull); defFull != nil {
-					return processMacro(defFull.definitionValue, currentScope, leftVal, rightVal)
-				}
-			}
-		}
-
-		fmt.Printf(
-			"ERROR: No match for macro '%s' with left '%s' right '%s'\n",
-			macroName,
-			leftVal.String(),
-			rightVal.String(),
-		)
 		return nil
 
 	case *Symbol:
@@ -129,6 +96,8 @@ func (currentScope *Scope) Get(lookupValue Value) Value {
 	}
 }
 
+// Define sets or updates a definition in this scope.
+// If the definition key is a single symbol, interpret its value immediately.
 func (currentScope *Scope) Define(defKey Value, defValue Value) {
 	definitionLookupKey := generateKey(defKey)
 	if !strings.Contains(definitionLookupKey, " ") {
@@ -166,20 +135,74 @@ func (currentScope *Scope) stringify(builder *strings.Builder, level int, visite
 	if len(currentScope.definitionsMap) == 0 {
 		builder.WriteString(fmt.Sprintf("%s  (no definitions)\n", indent))
 	} else {
-		for defKeyStr, defPointer := range currentScope.definitionsMap {
+		for defKeyStr, defPtr := range currentScope.definitionsMap {
 			builder.WriteString(fmt.Sprintf(
 				"%s  %s%s%s: %s%s%s\n",
 				indent,
 				ansiGreen, defKeyStr, ansiReset,
-				ansiYellow, defPointer.definitionValue.String(), ansiReset,
+				ansiYellow, defPtr.definitionValue.String(), ansiReset,
 			))
 		}
 	}
-
 	if currentScope.parentScope != nil {
 		builder.WriteString(fmt.Sprintf("%s%sparent scope:%s\n", indent, ansiBlue, ansiReset))
 		currentScope.parentScope.stringify(builder, level+1, visited)
 	}
+}
+
+func (currentScope *Scope) applyUnaryMacro(macroName string, rawLeft Value) Value {
+	leftVal := interpretExpression(rawLeft, currentScope)
+	leftTypes := gatherTypeStrings(leftVal)
+
+	for _, leftType := range leftTypes {
+		defKey := macroName + " " + leftType
+		if foundDef := currentScope.findDefinition(defKey); foundDef != nil {
+			return processMacro(foundDef.definitionValue, currentScope, leftVal, &Nil{})
+		}
+	}
+	fmt.Printf(
+		"ERROR: No match for unary macro '%s' with '%s'\n",
+		macroName,
+		leftVal.String(),
+	)
+	return nil
+}
+
+// applyBinaryMacro implements:
+//   1. Interpret left argument.
+//   2. Check wildcard macros for "macroName <leftType> *" without interpreting right.
+//   3. If no wildcard, interpret right argument and check macros for "macroName <leftType> <rightType>".
+//   4. If no match, print error and return nil.
+func (currentScope *Scope) applyBinaryMacro(macroName string, rawLeft Value, rawRight Value) Value {
+	leftVal := interpretExpression(rawLeft, currentScope)
+	leftTypes := gatherTypeStrings(leftVal)
+
+	for _, leftType := range leftTypes {
+		keyWildcard := macroName + " " + leftType + " *"
+		if defAny := currentScope.findDefinition(keyWildcard); defAny != nil {
+			return processMacro(defAny.definitionValue, currentScope, leftVal, rawRight)
+		}
+	}
+
+	rightVal := interpretExpression(rawRight, currentScope)
+	rightTypes := gatherTypeStrings(rightVal)
+
+	for _, leftType := range leftTypes {
+		for _, rightType := range rightTypes {
+			keyFull := macroName + " " + leftType + " " + rightType
+			if defFull := currentScope.findDefinition(keyFull); defFull != nil {
+				return processMacro(defFull.definitionValue, currentScope, leftVal, rightVal)
+			}
+		}
+	}
+
+	fmt.Printf(
+		"ERROR: No match for macro '%s' with left '%s' right '%s'\n",
+		macroName,
+		leftVal.String(),
+		rightVal.String(),
+	)
+	return nil
 }
 
 func (currentScope *Scope) lookupSymbol(symbolName string) Value {
