@@ -163,6 +163,7 @@ func typedef(args Value, scope *Scope) Value {
 	return &TypedValue{
 		Value: left,
 		TypeValue: right,
+        TypeFallbacks: argsList[2:],
 	}
 }
 
@@ -173,6 +174,16 @@ func typeof(args Value, scope *Scope) Value {
     if left.GetTypeString() == right.String() {
         return &Integer{
             Value: 1,
+        }
+    }
+
+    if typedValue, ok := left.(*TypedValue); ok {
+        for _, t := range typedValue.TypeFallbacks {
+            if t.String() == right.String() {
+                return &Integer{
+                    Value: 1,
+                }
+            }
         }
     }
 

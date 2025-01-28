@@ -46,7 +46,9 @@ func (sym *Symbol) GetTypeString() string {
 type TypedValue struct {
     Value Value
     TypeValue Value
+    TypeFallbacks []Value
 }
+
 
 func (typeValue TypedValue) String() string {
     return "<" + typeValue.TypeValue.String() + " " + typeValue.Value.String() + ">"

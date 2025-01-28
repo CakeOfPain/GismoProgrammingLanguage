@@ -63,16 +63,16 @@ func interpretExpression(value Value, scope *Scope) Value {
             return &Nil{}
         case "@begin", "Module":
             var result Value = &Nil{}
-            scope.AcceptsExports = true
+            scope.allowExports = true
             newScope := NewScope(scope)
             arglen := v.Length()
             for i:=1; i < arglen; i++ {
                 result = interpretExpression(v.Get(i), newScope)
             }
-            scope.AcceptsExports = false
+            scope.allowExports = false
             return result
         }
-        result := scope.Get(v, scope)
+        result := scope.Get(v)
         if result == nil {
             fmt.Print("ERROR: Could not interpret: ")
             fmt.Println(value)
@@ -81,7 +81,7 @@ func interpretExpression(value Value, scope *Scope) Value {
 		
         return result
     case *Symbol:
-        result := scope.Get(v, scope)
+        result := scope.Get(v)
         if result == nil {
             return v
         }
