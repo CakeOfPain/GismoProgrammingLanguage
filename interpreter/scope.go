@@ -77,22 +77,49 @@ func (currentScope *Scope) GetLocal(localKey Value) Value {
 	return currentScope.parentScope.GetLocal(localKey)
 }
 
+// The crucial part is in the ConsCell branch below. We:
+//   1. Interpret the left argument (thus we know its true type).
+//   2. Try a wildcard macro: "macroName leftType *".
+//      - If found, do NOT interpret the right side and immediately process the macro.
+//   3. If no wildcard macro is found, interpret the right argument and try normal type-specific macros.
+//   4. If none matches, print an error and return nil.
 func (currentScope *Scope) Get(lookupValue Value) Value {
 	switch typedValue := lookupValue.(type) {
+
 	case *ConsCell:
 		macroName := typedValue.Car.String()
 		leftVal := interpretExpression(typedValue.Get(1), currentScope)
-		rightVal := interpretExpression(typedValue.Get(2), currentScope)
-		foundMacro := currentScope.findMacro(macroName, leftVal, rightVal)
-		if foundMacro == nil {
-			fmt.Printf(
-				"ERROR: No match for macro '%s' with left '%s' right '%s'\n",
-				macroName,
-				leftVal.String(),
-				rightVal.String(),
-			)
+		leftTypes := gatherTypeStrings(leftVal)
+
+		// Check for wildcard macro first (right side NOT interpreted).
+		for _, leftType := range leftTypes {
+			keyWildcard := macroName + " " + leftType + " *"
+			if defAny := currentScope.findDefinition(keyWildcard); defAny != nil {
+				return processMacro(defAny.definitionValue, currentScope, leftVal, typedValue.Get(2))
+			}
 		}
-		return foundMacro
+
+		// If no wildcard macro was found, interpret the right side
+		rightVal := interpretExpression(typedValue.Get(2), currentScope)
+		rightTypes := gatherTypeStrings(rightVal)
+
+		// Check normal macros with both types known
+		for _, leftType := range leftTypes {
+			for _, rightType := range rightTypes {
+				keyFull := macroName + " " + leftType + " " + rightType
+				if defFull := currentScope.findDefinition(keyFull); defFull != nil {
+					return processMacro(defFull.definitionValue, currentScope, leftVal, rightVal)
+				}
+			}
+		}
+
+		fmt.Printf(
+			"ERROR: No match for macro '%s' with left '%s' right '%s'\n",
+			macroName,
+			leftVal.String(),
+			rightVal.String(),
+		)
+		return nil
 
 	case *Symbol:
 		return currentScope.lookupSymbol(typedValue.Value)
@@ -164,35 +191,6 @@ func (currentScope *Scope) lookupSymbol(symbolName string) Value {
 	return nil
 }
 
-func (currentScope *Scope) findMacro(macroName string, left Value, right Value) Value {
-	leftTypes := gatherTypeStrings(left)
-	rightTypes := gatherTypeStrings(right)
-	for _, leftType := range leftTypes {
-		keyWildcard := macroName + " " + leftType + " *"
-		if defAny := currentScope.findDefinition(keyWildcard); defAny != nil {
-			return processMacro(defAny.definitionValue, currentScope, left, right)
-		}
-		for _, rightType := range rightTypes {
-			keyFull := macroName + " " + leftType + " " + rightType
-			if defFull := currentScope.findDefinition(keyFull); defFull != nil {
-				return processMacro(defFull.definitionValue, currentScope, left, right)
-			}
-		}
-	}
-	return nil
-}
-
-func gatherTypeStrings(val Value) []string {
-	if typedVal, ok := val.(*TypedValue); ok {
-		types := []string{typedVal.TypeValue.String()}
-		for _, fallback := range typedVal.TypeFallbacks {
-			types = append(types, fallback.String())
-		}
-		return types
-	}
-	return []string{val.GetTypeString()}
-}
-
 func (currentScope *Scope) findDefinition(definitionKey string) *Definition {
 	for searchScope := currentScope; searchScope != nil; searchScope = searchScope.parentScope {
 		if foundDef, ok := searchScope.definitionsMap[definitionKey]; ok {
@@ -200,6 +198,17 @@ func (currentScope *Scope) findDefinition(definitionKey string) *Definition {
 		}
 	}
 	return nil
+}
+
+func gatherTypeStrings(val Value) []string {
+	if tv, ok := val.(*TypedValue); ok {
+		allTypes := []string{tv.TypeValue.String()}
+		for _, fallback := range tv.TypeFallbacks {
+			allTypes = append(allTypes, fallback.String())
+		}
+		return allTypes
+	}
+	return []string{val.GetTypeString()}
 }
 
 func processMacro(macroValue Value, currentScope *Scope, left Value, right Value) Value {
