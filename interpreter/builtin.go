@@ -177,10 +177,12 @@ func typeof(args Value, scope *Scope) Value {
         }
     }
 
-    for _, fallback := range argsList[2:] {
-        if left.GetTypeString() == fallback.String() {
-            return &Integer{
-                Value: 1,
+    if typedValue, ok := left.(*TypedValue); ok {
+        for _, t := range typedValue.TypeFallbacks {
+            if t.String() == right.String() {
+                return &Integer{
+                    Value: 1,
+                }
             }
         }
     }

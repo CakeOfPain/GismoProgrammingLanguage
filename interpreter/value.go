@@ -49,6 +49,7 @@ type TypedValue struct {
     TypeFallbacks []Value
 }
 
+
 func (typeValue TypedValue) String() string {
     return "<" + typeValue.TypeValue.String() + " " + typeValue.Value.String() + ">"
 }
