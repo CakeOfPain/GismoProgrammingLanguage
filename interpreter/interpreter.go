@@ -72,8 +72,10 @@ func interpretExpression(value Value, scope *Scope) Value {
             scope.allowExports = false
             return result
         }
+        
         result := scope.Get(v)
         if result == nil {
+
             fmt.Print("ERROR: Could not interpret: ")
             fmt.Println(value)
 			os.Exit(1)

@@ -1,9 +1,0 @@
-
-export function w $main() {
-@start
-    
-    call $printf(l $fmt, ..., w 31416)
-    ret 0
-}
-
-data $fmt = {b "Hello World! %d\n", b 0}

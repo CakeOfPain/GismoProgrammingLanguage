@@ -1,0 +1,4 @@
+
+$PRINTLN($QUOTE({
+	x := true if x > 0 else false
+}))

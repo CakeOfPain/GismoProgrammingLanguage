@@ -398,7 +398,7 @@ func loadFile(args Value, scope *Scope) Value {
 func exporter(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
     key := argsList[0]
-    value := argsList[1]
+    value := interpretExpression(argsList[1], scope)
     scope.ExportDefinition(key, value)
     return &Nil{}
 }
@@ -511,6 +511,9 @@ func isolator(value Value, scope *Scope) Value {
 }
 
 func raiser(value Value, scope *Scope) Value {
-    
+    argsList := getArgsList(value)
+    message := interpretExpression(argsList[0], scope).String()
+    fmt.Fprintln(os.Stderr, message)
+    os.Exit(1)
     return &Nil{}
 }

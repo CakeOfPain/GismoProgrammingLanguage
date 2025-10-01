@@ -1,0 +1,10 @@
+
+Arithmetic {
+    blubber(a: i32, b: i32, c: i64, dee: i8): i32 {
+
+    }
+
+    helloWorld(string: i32) {
+        
+    }
+}

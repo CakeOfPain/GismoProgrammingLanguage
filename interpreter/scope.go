@@ -197,10 +197,12 @@ func (currentScope *Scope) applyBinaryMacro(macroName string, rawLeft Value, raw
 	}
 
 	fmt.Printf(
-		"ERROR: No match for macro '%s' with left '%s' right '%s'\n",
+		"ERROR: No match for macro '%s' with left '%s' (%s) right '%s' (%s)\n",
 		macroName,
 		leftVal.String(),
+		leftVal.GetTypeString(),
 		rightVal.String(),
+		rightVal.GetTypeString(),
 	)
 	return nil
 }

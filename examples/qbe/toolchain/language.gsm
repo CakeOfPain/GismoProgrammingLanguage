@@ -1,36 +1,75 @@
-"functions" =@@ _map
-"strings" =@@ _map
 
-// FUNCTIONS
-fun ::= $TYPEDEF(0, fun)
+symbol{*} ::= {
+    moduleName ::= $1
 
-fun(*) ::= {
-    $TYPEDEF(_map {
-        "defi": $QUOTE($2)
-    }, funcDef)
-}
+    // Buildin Types
+    i8 ::= $TYPEDEF("b", TYPE)
+    i16 ::= $TYPEDEF("s", TYPE)
+    i32 ::= $TYPEDEF("w", TYPE)
+    i64 ::= $TYPEDEF("l", TYPE)
 
-funcDef{*} ::= {
-    $TYPEDEF($UNTYPE($1) {
-        "body": $QUOTE($2)
-    }, funcDefBody)
-}
-
-symbol := funcDefBody ::= {
-    "functions" =@@ @@"functions" {
-        $CAT($1, ""): $UNTYPE($2) {
-            "name": $CAT("", $1)
-            "index": $CAT("$", $1)
-            "generated": 0
-        }
+    symbol() ::= {
+        function ::= $Function($1, $TYPEDEF("", TYPE), $VECTOR(0))
+        $EXPORT($1, $TYPEDEF(function, Function))
+        // RETURN:
+        $TYPEDEF(function, VoidFunctionProto, FunctionProto)
     }
-    $EXPORT($1, $TYPEDEF((@@"functions")($CAT($1, "")), _FUNCTION))
-}
 
-puts ::= $TYPEDEF(_map {
-    "defi": ""
-    "body": ""
-    "generated": 1
-    "name": "puts"
-    "index": "$puts"
-}, _FUNCTION)
+    symbol(*) ::= {
+        function ::= $Function($1, $TYPEDEF("", TYPE), $FLATTEN($QUOTE($2), ","))
+        $EXPORT($1, $TYPEDEF(function, Function))
+        // RETURN:
+        $TYPEDEF(function, VoidFunctionProto, FunctionProto)
+    }
+
+    VoidFunctionProto : (*) ::= {
+        fn ::= $UNTYPE($1)
+
+        $IF($TYPEOF($2, "TYPE"), {}, $RAISE("Error: Expected Type descriptor"))
+
+        $EVAL($REPLACE($QUOTE($EXPORT(NAME, $TYPEDEF(function, Function))), "NAME", fn.name))
+
+        // RETURN:
+        $TYPEDEF($Function(fn.name, $2, fn.arguments), FunctionProto)
+    }
+
+    FunctionProto{*} ::= {
+        voidFunctionProto ::= $UNTYPE($1)
+
+        $WRITE("function ")
+        $WRITE($UNTYPE(voidFunctionProto.returnType))
+        $WRITE(" $")
+        $WRITE(moduleName)
+        $WRITE("_")
+        $WRITE(voidFunctionProto.name)
+        $WRITE("(")
+    
+        mappedArgs ::= voidFunctionProto.arguments map $LAMBDA(x, {
+            T ::= $EVAL($CAR($CDR($CDR(x))))
+            NAME ::= $EVAL($CAR($CDR(x)))
+            $IF($TYPEOF(T, "TYPE"), {}, $RAISE($CAT("Error: Expected a valid Type descriptor, not ", T)))
+            $CAT($UNTYPE(T), $CAT(" %", NAME))
+        })
+
+        $WRITE(mappedArgs join ", ")
+
+        // We need to define variables here
+        $PRINTLN(mappedArgs)
+        
+
+        $WRITE(") {\n@start\n")
+
+        _result ::= {
+
+
+            $2
+        }
+
+        $WRITE("\n}\n")
+    }
+
+    // RETURN:
+    {
+        $2
+    }
+}

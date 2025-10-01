@@ -1,0 +1,5 @@
+
+
+$Function ::= $struct(name, returnType, arguments)
+$Variable ::= $struct(name, value)
+$Value ::= $struct(addr, type)

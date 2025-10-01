@@ -1,7 +1,0 @@
-
-one: num8 = 1
-
-main: func = asm {
-    lc1(one)
-    putu()
-}
