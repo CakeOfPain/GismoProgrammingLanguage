@@ -151,22 +151,25 @@ func (currentScope *Scope) stringify(builder *strings.Builder, level int, visite
 }
 
 func (currentScope *Scope) applyUnaryMacro(macroName string, rawLeft Value) Value {
-	leftVal := interpretExpression(rawLeft, currentScope)
-	leftTypes := gatherTypeStrings(leftVal)
+    leftVal := interpretExpression(rawLeft, currentScope)
+    leftTypes := gatherTypeStrings(leftVal)
 
-	for _, leftType := range leftTypes {
-		defKey := macroName + " " + leftType
-		if foundDef := currentScope.findDefinition(defKey); foundDef != nil {
-			return processMacro(foundDef.definitionValue, currentScope, leftVal, &Nil{})
-		}
-	}
-	fmt.Printf(
-		"ERROR: No match for unary macro '%s' with '%s'\n",
-		macroName,
-		leftVal.String(),
-	)
-	return nil
+    for _, leftType := range leftTypes {
+        defKey := macroName + " " + leftType
+        if foundDef := currentScope.findDefinition(defKey); foundDef != nil {
+            // Unwrap the specific value matching 'leftType'
+            resolvedLeft := resolveValueForType(leftVal, leftType)
+            return processMacro(foundDef.definitionValue, currentScope, resolvedLeft, &Nil{})
+        }
+    }
+    fmt.Printf(
+        "ERROR: No match for unary macro '%s' with '%s'\n",
+        macroName,
+        leftVal.String(),
+    )
+    return nil
 }
+
 
 // applyBinaryMacro implements:
 //   1. Interpret left argument.
@@ -174,37 +177,44 @@ func (currentScope *Scope) applyUnaryMacro(macroName string, rawLeft Value) Valu
 //   3. If no wildcard, interpret right argument and check macros for "macroName <leftType> <rightType>".
 //   4. If no match, print error and return nil.
 func (currentScope *Scope) applyBinaryMacro(macroName string, rawLeft Value, rawRight Value) Value {
-	leftVal := interpretExpression(rawLeft, currentScope)
-	leftTypes := gatherTypeStrings(leftVal)
+    leftVal := interpretExpression(rawLeft, currentScope)
+    leftTypes := gatherTypeStrings(leftVal)
 
-	for _, leftType := range leftTypes {
-		keyWildcard := macroName + " " + leftType + " *"
-		if defAny := currentScope.findDefinition(keyWildcard); defAny != nil {
-			return processMacro(defAny.definitionValue, currentScope, leftVal, rawRight)
-		}
-	}
+    // Check wildcard matches: "macroName <leftType> *"
+    for _, leftType := range leftTypes {
+        keyWildcard := macroName + " " + leftType + " *"
+        if defAny := currentScope.findDefinition(keyWildcard); defAny != nil {
+            // Unwrap left value, pass raw right value (as per wildcard logic)
+            resolvedLeft := resolveValueForType(leftVal, leftType)
+            return processMacro(defAny.definitionValue, currentScope, resolvedLeft, rawRight)
+        }
+    }
 
-	rightVal := interpretExpression(rawRight, currentScope)
-	rightTypes := gatherTypeStrings(rightVal)
+    rightVal := interpretExpression(rawRight, currentScope)
+    rightTypes := gatherTypeStrings(rightVal)
 
-	for _, leftType := range leftTypes {
-		for _, rightType := range rightTypes {
-			keyFull := macroName + " " + leftType + " " + rightType
-			if defFull := currentScope.findDefinition(keyFull); defFull != nil {
-				return processMacro(defFull.definitionValue, currentScope, leftVal, rightVal)
-			}
-		}
-	}
+    // Check exact matches: "macroName <leftType> <rightType>"
+    for _, leftType := range leftTypes {
+        for _, rightType := range rightTypes {
+            keyFull := macroName + " " + leftType + " " + rightType
+            if defFull := currentScope.findDefinition(keyFull); defFull != nil {
+                // Unwrap BOTH values to their matching types
+                resolvedLeft := resolveValueForType(leftVal, leftType)
+                resolvedRight := resolveValueForType(rightVal, rightType)
+                return processMacro(defFull.definitionValue, currentScope, resolvedLeft, resolvedRight)
+            }
+        }
+    }
 
-	fmt.Printf(
-		"ERROR: No match for macro '%s' with left '%s' (%s) right '%s' (%s)\n",
-		macroName,
-		leftVal.String(),
-		leftVal.GetTypeString(),
-		rightVal.String(),
-		rightVal.GetTypeString(),
-	)
-	return nil
+    fmt.Printf(
+        "ERROR: No match for macro '%s' with left '%s' (%s) right '%s' (%s)\n",
+        macroName,
+        leftVal.String(),
+        leftVal.GetTypeString(),
+        rightVal.String(),
+        rightVal.GetTypeString(),
+    )
+    return nil
 }
 
 func (currentScope *Scope) lookupSymbol(symbolName string) Value {
@@ -226,14 +236,24 @@ func (currentScope *Scope) findDefinition(definitionKey string) *Definition {
 }
 
 func gatherTypeStrings(val Value) []string {
-	if tv, ok := val.(*TypedValue); ok {
-		allTypes := []string{tv.TypeValue.String()}
-		for _, fallback := range tv.TypeFallbacks {
-			allTypes = append(allTypes, fallback.String())
-		}
-		return allTypes
-	}
-	return []string{val.GetTypeString()}
+    if tv, ok := val.(*TypedValue); ok {
+        allTypes := []string{tv.TypeValue.String()}
+        for _, fallback := range tv.TypeFallbacks {
+            allTypes = append(allTypes, fallback.String())
+        }
+        return allTypes
+    }
+
+    if u, ok := val.(*Union); ok {
+        allTypes := []string{"Union"}
+        
+        for _, v := range u.Values {
+            allTypes = append(allTypes, gatherTypeStrings(v)...)
+        }
+        return allTypes
+    }
+
+    return []string{val.GetTypeString()}
 }
 
 func processMacro(macroValue Value, currentScope *Scope, left Value, right Value) Value {
@@ -258,4 +278,42 @@ func generateKey(definitionValue Value) string {
 	default:
 		return "@UNDEFINED"
 	}
+}
+
+// Helper function to extract the specific value that triggered the type match
+func resolveValueForType(val Value, targetType string) Value {
+    // 1. Handle TypedValue: Check its declared Type and Fallbacks
+    if tv, ok := val.(*TypedValue); ok {
+        if tv.TypeValue.String() == targetType {
+            return tv
+        }
+        for _, fallback := range tv.TypeFallbacks {
+            if fallback.String() == targetType {
+                return tv
+            }
+        }
+        return nil
+    }
+
+    // 2. Handle Union: Recursively search for the matching content
+    if u, ok := val.(*Union); ok {
+        // If the macro specifically matched "Union", return the whole container
+        if targetType == "Union" {
+            return u
+        }
+        // Otherwise, find the inner value that matches the target type
+        for _, inner := range u.Values {
+            if found := resolveValueForType(inner, targetType); found != nil {
+                return found
+            }
+        }
+        return nil
+    }
+
+    // 3. Handle Standard Types (Integer, String, etc.)
+    if val.GetTypeString() == targetType {
+        return val
+    }
+
+    return nil
 }

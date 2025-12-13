@@ -71,7 +71,8 @@ var binaryPrecedences = []struct {
 }
 
 const FunctionCallPrecedence = 16
-const CurlyCallPrecedence = 14
+const CurlyCallPrecedence    = 14
+const identifierPrecedence   = 3
 
 // Tokenize converts the input code into a list of tokens.
 func Tokenize(code string, source string) []*Token {
@@ -150,7 +151,7 @@ func createIdentifierToken(current rune, r *StringReader, source string) *Token 
 		Pos:       r.ptr,
 		Value:     value,
 		Alias:     value,
-		BinPrec:   3,
+		BinPrec:   identifierPrecedence,
 	}
 }
 
@@ -165,7 +166,7 @@ func createNumberToken(current rune, r *StringReader, source string) *Token {
 		Pos:       r.ptr,
 		Value:     value,
 		Alias:     value,
-		BinPrec:   3,
+		BinPrec:   identifierPrecedence,
 	}
 }
 
@@ -180,7 +181,7 @@ func createOperatorToken(current rune, r *StringReader, source string) *Token {
 		Pos:       r.ptr,
 		Value:     value,
 		Alias:     value,
-		BinPrec:   3,
+		BinPrec:   identifierPrecedence,
 	}
 }
 

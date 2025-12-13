@@ -167,3 +167,20 @@ func (v *Vector) String() string {
 func (v *Vector) Length() int {
     return len(v.Elements)
 }
+
+type Union struct {
+    Values []Value
+}
+
+func (u *Union) GetTypeString() string {
+    return "Union"
+}
+
+func (u *Union) String() string {
+    str := "<Union"
+    for _, val := range u.Values {
+        str += " " + val.String()
+    }
+    str += ">"
+    return str
+}

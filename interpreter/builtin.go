@@ -57,6 +57,7 @@ func Builtins() []BuiltinFunction {
         {callback: vectorResize, identifier: "$VECTOR_RESIZE"},
         {callback: isolator, identifier: "$ISOLATE"},
         {callback: raiser, identifier: "$RAISE"},
+        {callback: unionizer, identifier: "$UNION"},
     }
 }
 
@@ -377,7 +378,7 @@ func niler(args Value, scope *Scope) Value {
 
 func loadFile(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
-    source := argsList[0].String()
+    source := interpretExpression(argsList[0], scope).String()
     bytes, ok := os.ReadFile(source)
     if ok != nil{
         return &Nil{}
@@ -516,4 +517,17 @@ func raiser(value Value, scope *Scope) Value {
     fmt.Fprintln(os.Stderr, message)
     os.Exit(1)
     return &Nil{}
+}
+
+func unionizer(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    values := make([]Value, len(argsList))
+
+    for i, arg := range argsList {
+        values[i] = interpretExpression(arg, scope)
+    }
+
+    return &Union{
+        Values: values,
+    }
 }
