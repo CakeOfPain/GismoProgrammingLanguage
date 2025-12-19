@@ -56,15 +56,19 @@ VALUE_I32 + VALUE_I32 ::= {
 The user writes code that looks like a high-level language. Because of the rules defined above, this valid Gismo syntax acts as a DSL.
 
 ```gismo
+sum2(a: i32, b: i32): i32
+
 add(a: i32, b: i32): i32 {
-    sum2(a, b) // Calls another function
+    sum2(a,b)
 }
 
 main(): i32 {
-    a <- 20    // Variable assignment (defined via 'symbol <- int')
+    a <- 20
     b <- 30
-    add(a, b)
+    add(a,b)
 }
+
+sum2 {a+b}
 ```
 
 ### 3. Generated Output (Target IR)
@@ -72,18 +76,27 @@ main(): i32 {
 When `main.gsm` is executed by Gismo, it produces the following Intermediate Representation to stdout or the specified output file (`out.ssa`):
 
 ```asm
-function add(i32 %a, i32 %b) {
+function w $add(w %a, w %b) {
 @start
-    %t0 =w call $sum2(%a, %b)
-    ret %t0
+        %t0 =w call $sum2(w %a, w %a)
+
+        ret %t0
 }
 
-export function $main() {
+export function w $main() {
 @start
-    %a =w copy 20
-    %b =w copy 30
-    %t1 =w call $add(%a, %b)
-    ret %t1
+        %a =w copy 20
+        %b =w copy 30
+        %t1 =w call $add(w %a, w %a)
+
+        ret %t1
+}
+
+function w $sum2(w %a, w %b) {
+@start
+        %t2 =w add %a, %b
+
+        ret %t2
 }
 ```
 
