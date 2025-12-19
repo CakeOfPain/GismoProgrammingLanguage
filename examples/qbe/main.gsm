@@ -1,10 +1,15 @@
 
-Arithmetic {
-    blubber(a: i32, b: i32, c: i64, dee: i8): i32 {
 
-    }
+sum2(a: i32, b: i32): i32
 
-    helloWorld(string: i32) {
-        
-    }
+add(a: i32, b: i32): i32 {
+    sum2(a,b)
 }
+
+main(): i32 {
+    a <- 20
+    b <- 30
+    add(a,b)
+}
+
+sum2 {a+b}

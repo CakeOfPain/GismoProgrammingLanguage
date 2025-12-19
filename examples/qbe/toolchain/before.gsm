@@ -210,5 +210,10 @@ metaObject.(*) ::= {
     finder(0)
 }
 
+$KEYWORD ::= $TYPEDEF($NIL(), $KEYWORD)
+$KEYWORD(symbol) ::= {$EXPORT($2, $TYPEDEF($NIL(), $2))}
+
+$NOT ::= $LAMBDA(x, $EQUALS(x, $NIL()))
+
 $LOAD("toolchain/types.gsm")
 $LOAD("toolchain/language.gsm")

@@ -11,6 +11,9 @@ var OutputPath string = "out.a"
 var OutputFile *os.File = nil
 var OutputEnabled bool = true
 
+// For inbuilt function $IOTA start value
+var IotaValue int = 0
+
 func Init() {
 
 	if OutputEnabled {

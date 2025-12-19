@@ -55,9 +55,11 @@ func Builtins() []BuiltinFunction {
         {callback: vectorSet, identifier: "$VECTOR_SET"},
         {callback: vectorLen, identifier: "$VECTOR_LEN"},
         {callback: vectorResize, identifier: "$VECTOR_RESIZE"},
+        {callback: foreacher, identifier: "$FOREACH"},
         {callback: isolator, identifier: "$ISOLATE"},
         {callback: raiser, identifier: "$RAISE"},
         {callback: unionizer, identifier: "$UNION"},
+        {callback: iotainator, identifier: "$IOTA"},
     }
 }
 
@@ -398,7 +400,8 @@ func loadFile(args Value, scope *Scope) Value {
 
 func exporter(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
-    key := argsList[0]
+    key := interpretExpression(argsList[0], scope)
+    // key := argsList[0]
     value := interpretExpression(argsList[1], scope)
     scope.ExportDefinition(key, value)
     return &Nil{}
@@ -529,5 +532,37 @@ func unionizer(args Value, scope *Scope) Value {
 
     return &Union{
         Values: values,
+    }
+}
+
+func foreacher(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    collectionVal := interpretExpression(argsList[0], scope)
+    variableName := interpretExpression(argsList[1], scope)
+    body := argsList[2]
+    
+    if varSym, ok := variableName.(*Symbol); ok {
+        switch collection := collectionVal.(type) {
+        case *Vector:
+            for _, element := range collection.Elements {
+                newBody := subSymbol(body, varSym, element, true)
+                interpretExpression(newBody, scope)
+            }
+        case *ConsCell:
+            for i := 0; i < collection.Length(); i++ {
+                element := collection.Get(i)
+                newBody := subSymbol(body, varSym, element, true)
+                interpretExpression(newBody, scope)
+            }
+        }
+    }
+    return &Nil{}
+}
+
+func iotainator(args Value, scope *Scope) Value {
+    currentValue := config.IotaValue
+    config.IotaValue++
+    return &Integer{
+        Value: int64(currentValue),
     }
 }
