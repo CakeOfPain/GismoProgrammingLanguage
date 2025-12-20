@@ -548,53 +548,46 @@ func writeByte2Output(args Value, scope *Scope) Value {
 func niler(args Value, scope *Scope) Value {
     return &Nil{}
 }
-
 func loadFile(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
     if len(argsList) < 1 {
         return &Nil{}
     }
 
-    // 1. Resolve the absolute path to ensure cache consistency
-    relPath := interpretExpression(argsList[0], scope).String()
-    absPath, err := filepath.Abs(relPath)
+    rawPath := interpretExpression(argsList[0], scope).String()
+
+    absPath, err := filepath.Abs(rawPath)
     if err != nil {
-        // Fallback to relative path if absolute resolution fails
-        absPath = relPath
+        return &Nil{}
+    }
+
+    canonicalPath, err := filepath.EvalSymlinks(absPath)
+    if err != nil {
+        return &Nil{}
     }
 
     var programValue Value
 
-    // 2. Check Cache
-    if cached, found := fileLoadCache[absPath]; found {
+    if cached, found := fileLoadCache[canonicalPath]; found {
         programValue = cached
     } else {
-        // 3. Cache Miss: Read from disk
-        bytes, err := os.ReadFile(absPath)
+        bytes, err := os.ReadFile(canonicalPath)
         if err != nil {
-            // File not found or unreadable
             return &Nil{}
         }
 
-        // 4. Tokenize and Parse
-        tokens := tokenizer.Tokenize(string(bytes), absPath)
-        ast := parser.Parse(tokens, absPath)
+        tokens := tokenizer.Tokenize(string(bytes), canonicalPath)
+        ast := parser.Parse(tokens, canonicalPath)
         programValue = syntaxNode2Value(ast)
 
-        // 5. Update Cache
-        fileLoadCache[absPath] = programValue
+        fileLoadCache[canonicalPath] = programValue
     }
 
-    // 6. Execute the program
-    // We iterate over the parsed structure and interpret each expression.
-    // This runs the code every time `load` is called, even if cached.
     if consCell, ok := programValue.(*ConsCell); ok {
-        // Assuming index 0 is the root node (e.g., "PROGRAM"), we start from 1
         for i := 1; i < consCell.Length(); i++ {
             interpretExpression(consCell.Get(i), scope)
         }
     } else {
-        // Handle case where file might contain a single expression not wrapped in a list
         interpretExpression(programValue, scope)
     }
 
