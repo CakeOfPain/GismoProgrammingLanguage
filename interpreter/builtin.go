@@ -571,11 +571,20 @@ func isolator(value Value, scope *Scope) Value {
     return interpretExpression(value, isolatedScope)
 }
 
-func raiser(value Value, scope *Scope) Value {
-    argsList := getArgsList(value)
-    message := interpretExpression(argsList[0], scope).String()
-    fmt.Fprintln(os.Stderr, message)
-    os.Exit(1)
+func raiser(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    
+    // 1. The marked value
+    targetValue := argsList[0] 
+    
+    // 2. The Error Message
+    message := "An error occurred"
+    if len(argsList) > 1 {
+        message = interpretExpression(argsList[1], scope).String()
+    }
+    
+    RuntimeError(targetValue.GetToken(), message)
+
     return &Nil{}
 }
 

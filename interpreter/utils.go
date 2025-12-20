@@ -9,60 +9,49 @@ import (
 )
 
 func syntaxNode2Value(expression *parser.SyntaxNode) Value {
-    if(expression.Value != nil) {
-        switch(expression.Value.TokenType) {
-        case tokentype.Number:
-            tokenVal := expression.Value.Value
-            
-            // Check for Dot -> Float (Handles "1.23" and ".123")
-            if strings.Contains(tokenVal, ".") {
-                // If starts with dot, prepend 0 for safety if needed
-                if strings.HasPrefix(tokenVal, ".") {
-                    tokenVal = "0" + tokenVal
-                }
-                value, _ := strconv.ParseFloat(tokenVal, 64)
-                return &Float{
-                    Value: value,
-                }
-            }
-            
-            // Check for Integer (Base 10, Hex, Bin, Octal)
-            // base=0 automatically detects 0x, 0b, 0o
-            value, _ := strconv.ParseInt(tokenVal, 0, 64)
-            return &Integer{
-                Value: value,
-            }
+    // If it's a leaf node (Literal)
+	if expression.Value != nil {
+		tok := expression.Value // This is the *tokenizer.Token
+		
+		switch expression.Value.TokenType {
+		case tokentype.Number:
+			tokenVal := expression.Value.Value
+			if strings.Contains(tokenVal, ".") {
+				if strings.HasPrefix(tokenVal, ".") { tokenVal = "0" + tokenVal }
+				value, _ := strconv.ParseFloat(tokenVal, 64)
+				return &Float{Value: value, BaseValue: BaseValue{Token: tok}}
+			}
+			value, _ := strconv.ParseInt(tokenVal, 0, 64)
+			return &Integer{Value: value, BaseValue: BaseValue{Token: tok}}
+		case tokentype.String:
+			return &String{Value: expression.Value.Value, BaseValue: BaseValue{Token: tok}}
+		case tokentype.Operator, tokentype.Identifier, tokentype.LParent, tokentype.LCurlyParent:
+			return &Symbol{Value: expression.Value.Alias, BaseValue: BaseValue{Token: tok}}
+		case tokentype.Module:
+			return &Symbol{Value: expression.Value.Alias, BaseValue: BaseValue{Token: tok}}
+		}
+		return &Nil{BaseValue: BaseValue{Token: tok}}
+	}
 
-        case tokentype.String:
-            return &String{
-                Value: expression.Value.Value,
-            }
-        case tokentype.Operator, tokentype.Identifier, tokentype.LParent, tokentype.LCurlyParent:
-            return &Symbol{
-                Value: expression.Value.Alias,
-            }
-        case tokentype.Module:
-            return &Symbol{
-                Value: expression.Value.Alias,
-            }
-        }
-        // OTHERWISE (SHOULD NOT HAPPEN)
-        return &Nil{}
-    }
-
-    var arguments Value = &Nil{}
-    for i := len(expression.Arguments)-1; i>=0; i-- {
-        arg := expression.Arguments[i]
-        arguments = &ConsCell{
-            Car: syntaxNode2Value(arg),
-            Cdr: arguments,
-        }
-    }
-
-    return &ConsCell{
-        Car: syntaxNode2Value(expression.Operator),
-        Cdr: arguments,
-    }
+    // If it's a list (ConsCell)
+    // We try to use the operator's token as the token for the whole ConsCell
+	var arguments Value = &Nil{}
+	for i := len(expression.Arguments) - 1; i >= 0; i-- {
+		arg := expression.Arguments[i]
+		arguments = &ConsCell{
+			Car: syntaxNode2Value(arg),
+			Cdr: arguments,
+            // Assign token from argument if possible, or nil
+            BaseValue: BaseValue{Token: arg.Value}, 
+		}
+	}
+    
+    // The main ConsCell gets the token from the Operator
+	return &ConsCell{
+		Car: syntaxNode2Value(expression.Operator),
+		Cdr: arguments,
+        BaseValue: BaseValue{Token: expression.Operator.Value},
+	}
 }
 
 func subSymbol(value Value, sym *Symbol, sub Value, limited bool) Value {

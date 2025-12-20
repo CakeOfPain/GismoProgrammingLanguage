@@ -3,6 +3,8 @@ package interpreter
 import (
 	"fmt"
 	"strings"
+
+	"gismolang.org/compiler/tokenizer"
 )
 
 type Definition struct {
@@ -81,10 +83,13 @@ func (currentScope *Scope) Get(lookupValue Value) Value {
 	switch typedValue := lookupValue.(type) {
 	case *ConsCell:
 		macroName := typedValue.Car.String()
+        // FIX: Extract the token from the operator (e.g., the "+" symbol)
+		operatorToken := typedValue.Car.GetToken()
+
 		if typedValue.Length() == 2 {
-			return currentScope.applyUnaryMacro(macroName, typedValue.Get(1))
+			return currentScope.applyUnaryMacro(macroName, typedValue.Get(1), operatorToken)
 		} else if typedValue.Length() >= 3 {
-			return currentScope.applyBinaryMacro(macroName, typedValue.Get(1), typedValue.Get(2))
+			return currentScope.applyBinaryMacro(macroName, typedValue.Get(1), typedValue.Get(2), operatorToken)
 		}
 		return nil
 
@@ -150,23 +155,20 @@ func (currentScope *Scope) stringify(builder *strings.Builder, level int, visite
 	}
 }
 
-func (currentScope *Scope) applyUnaryMacro(macroName string, rawLeft Value) Value {
+func (currentScope *Scope) applyUnaryMacro(macroName string, rawLeft Value, operatorToken *tokenizer.Token) Value {
     leftVal := interpretExpression(rawLeft, currentScope)
     leftTypes := gatherTypeStrings(leftVal)
 
     for _, leftType := range leftTypes {
         defKey := macroName + " " + leftType
         if foundDef := currentScope.findDefinition(defKey); foundDef != nil {
-            // Unwrap the specific value matching 'leftType'
             resolvedLeft := resolveValueForType(leftVal, leftType)
             return processMacro(foundDef.definitionValue, currentScope, resolvedLeft, &Nil{})
         }
     }
-    fmt.Printf(
-        "ERROR: No match for unary macro '%s' with '%s'\n",
-        macroName,
-        leftVal.String(),
-    )
+    
+    // ERROR REPORTING
+    RuntimeError(operatorToken, "No match for unary macro '%s' with type '%s'", macroName, leftVal.GetTypeString())
     return nil
 }
 
@@ -176,15 +178,14 @@ func (currentScope *Scope) applyUnaryMacro(macroName string, rawLeft Value) Valu
 //   2. Check wildcard macros for "macroName <leftType> *" without interpreting right.
 //   3. If no wildcard, interpret right argument and check macros for "macroName <leftType> <rightType>".
 //   4. If no match, print error and return nil.
-func (currentScope *Scope) applyBinaryMacro(macroName string, rawLeft Value, rawRight Value) Value {
+func (currentScope *Scope) applyBinaryMacro(macroName string, rawLeft Value, rawRight Value, operatorToken *tokenizer.Token) Value {
     leftVal := interpretExpression(rawLeft, currentScope)
     leftTypes := gatherTypeStrings(leftVal)
 
-    // Check wildcard matches: "macroName <leftType> *"
+    // Check wildcard matches
     for _, leftType := range leftTypes {
         keyWildcard := macroName + " " + leftType + " *"
         if defAny := currentScope.findDefinition(keyWildcard); defAny != nil {
-            // Unwrap left value, pass raw right value (as per wildcard logic)
             resolvedLeft := resolveValueForType(leftVal, leftType)
             return processMacro(defAny.definitionValue, currentScope, resolvedLeft, rawRight)
         }
@@ -193,12 +194,11 @@ func (currentScope *Scope) applyBinaryMacro(macroName string, rawLeft Value, raw
     rightVal := interpretExpression(rawRight, currentScope)
     rightTypes := gatherTypeStrings(rightVal)
 
-    // Check exact matches: "macroName <leftType> <rightType>"
+    // Check exact matches
     for _, leftType := range leftTypes {
         for _, rightType := range rightTypes {
             keyFull := macroName + " " + leftType + " " + rightType
             if defFull := currentScope.findDefinition(keyFull); defFull != nil {
-                // Unwrap BOTH values to their matching types
                 resolvedLeft := resolveValueForType(leftVal, leftType)
                 resolvedRight := resolveValueForType(rightVal, rightType)
                 return processMacro(defFull.definitionValue, currentScope, resolvedLeft, resolvedRight)
@@ -206,13 +206,13 @@ func (currentScope *Scope) applyBinaryMacro(macroName string, rawLeft Value, raw
         }
     }
 
-    fmt.Printf(
-        "ERROR: No match for macro '%s' with left '%s' (%s) right '%s' (%s)\n",
+    // ERROR REPORTING
+    RuntimeError(
+        operatorToken, 
+        "No match for macro '%s' with left '%s' (%s) and right '%s' (%s)",
         macroName,
-        leftVal.String(),
-        leftVal.GetTypeString(),
-        rightVal.String(),
-        rightVal.GetTypeString(),
+        leftVal.String(), leftVal.GetTypeString(),
+        rightVal.String(), rightVal.GetTypeString(),
     )
     return nil
 }
