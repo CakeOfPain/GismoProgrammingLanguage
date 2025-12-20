@@ -176,6 +176,7 @@ func construct(args Value, scope *Scope) Value {
     return &ConsCell{
         Car: left,
         Cdr: right,
+        BaseValue: BaseValue{Token: left.GetToken()},
     }
 }
 
@@ -288,6 +289,7 @@ func lambda(args Value, scope *Scope) Value {
     if sym, ok := left.(*Symbol); ok {
         return BuiltinFunction{
             callback: func(value Value, callerScope *Scope) Value {
+                value = interpretExpression(value, callerScope)
                 arg := &ConsCell{
                     Car: &Symbol{
                         Value: "@call",
@@ -297,10 +299,11 @@ func lambda(args Value, scope *Scope) Value {
                             Value: "$QUOTE",
                         },
                         Cdr: &ConsCell{
-                            Car: interpretExpression(value, callerScope),
+                            Car: value,
                             Cdr: &Nil{},
                         },
                     },
+                    BaseValue: BaseValue{Token: value.GetToken()},
                 }
                 return interpretExpression(subSymbol(body, sym, arg, false), scope)
             },
@@ -582,7 +585,7 @@ func raiser(args Value, scope *Scope) Value {
     if len(argsList) > 1 {
         message = interpretExpression(argsList[1], scope).String()
     }
-    
+
     RuntimeError(targetValue.GetToken(), message)
 
     return &Nil{}

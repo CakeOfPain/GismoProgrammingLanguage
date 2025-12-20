@@ -73,7 +73,7 @@ func main() {
     // Tokenize the file content
     tokens := []*tokenizer.Token{}
     if before != nil {
-        tokens = append(tokens, tokenizer.Tokenize(string(before), file)...)
+        tokens = append(tokens, tokenizer.Tokenize(string(before), config.BeforePath)...)
         tokens = append(tokens, &tokenizer.Token{TokenType: tokentype.Newline})
     }
 
@@ -81,7 +81,7 @@ func main() {
 
     if after != nil {
         tokens = append(tokens, &tokenizer.Token{TokenType: tokentype.Newline})
-        tokens = append(tokens, tokenizer.Tokenize(string(after), file)...)
+        tokens = append(tokens, tokenizer.Tokenize(string(after), config.AfterPath)...)
     }
 
     // Parse the tokens into an AST

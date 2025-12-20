@@ -83,7 +83,6 @@ func (currentScope *Scope) Get(lookupValue Value) Value {
 	switch typedValue := lookupValue.(type) {
 	case *ConsCell:
 		macroName := typedValue.Car.String()
-        // FIX: Extract the token from the operator (e.g., the "+" symbol)
 		operatorToken := typedValue.Car.GetToken()
 
 		if typedValue.Length() == 2 {
@@ -100,6 +99,7 @@ func (currentScope *Scope) Get(lookupValue Value) Value {
 		return nil
 	}
 }
+
 
 // Define sets or updates a definition in this scope.
 // If the definition key is a single symbol, interpret its value immediately.
@@ -163,21 +163,26 @@ func (currentScope *Scope) applyUnaryMacro(macroName string, rawLeft Value, oper
         defKey := macroName + " " + leftType
         if foundDef := currentScope.findDefinition(defKey); foundDef != nil {
             resolvedLeft := resolveValueForType(leftVal, leftType)
-            return processMacro(foundDef.definitionValue, currentScope, resolvedLeft, &Nil{})
+            
+            // Construct $$ -> (OP LEFT)
+            wholeExpr := &ConsCell{
+                Car: &Symbol{Value: macroName, BaseValue: BaseValue{Token: operatorToken}},
+                Cdr: &ConsCell{
+                    Car: resolvedLeft,
+                    Cdr: &Nil{},
+                },
+                BaseValue: BaseValue{Token: operatorToken},
+            }
+
+            return processMacro(foundDef.definitionValue, currentScope, resolvedLeft, &Nil{}, wholeExpr)
         }
     }
     
-    // ERROR REPORTING
     RuntimeError(operatorToken, "No match for unary macro '%s' with type '%s'", macroName, leftVal.GetTypeString())
     return nil
 }
 
 
-// applyBinaryMacro implements:
-//   1. Interpret left argument.
-//   2. Check wildcard macros for "macroName <leftType> *" without interpreting right.
-//   3. If no wildcard, interpret right argument and check macros for "macroName <leftType> <rightType>".
-//   4. If no match, print error and return nil.
 func (currentScope *Scope) applyBinaryMacro(macroName string, rawLeft Value, rawRight Value, operatorToken *tokenizer.Token) Value {
     leftVal := interpretExpression(rawLeft, currentScope)
     leftTypes := gatherTypeStrings(leftVal)
@@ -187,7 +192,21 @@ func (currentScope *Scope) applyBinaryMacro(macroName string, rawLeft Value, raw
         keyWildcard := macroName + " " + leftType + " *"
         if defAny := currentScope.findDefinition(keyWildcard); defAny != nil {
             resolvedLeft := resolveValueForType(leftVal, leftType)
-            return processMacro(defAny.definitionValue, currentScope, resolvedLeft, rawRight)
+            
+            // Construct $$ -> (OP LEFT RIGHT)
+            wholeExpr := &ConsCell{
+                Car: &Symbol{Value: macroName, BaseValue: BaseValue{Token: operatorToken}},
+                Cdr: &ConsCell{
+                    Car: resolvedLeft,
+                    Cdr: &ConsCell{
+                        Car: rawRight, // Raw right for wildcard
+                        Cdr: &Nil{},
+                    },
+                },
+                BaseValue: BaseValue{Token: operatorToken},
+            }
+
+            return processMacro(defAny.definitionValue, currentScope, resolvedLeft, rawRight, wholeExpr)
         }
     }
 
@@ -201,12 +220,25 @@ func (currentScope *Scope) applyBinaryMacro(macroName string, rawLeft Value, raw
             if defFull := currentScope.findDefinition(keyFull); defFull != nil {
                 resolvedLeft := resolveValueForType(leftVal, leftType)
                 resolvedRight := resolveValueForType(rightVal, rightType)
-                return processMacro(defFull.definitionValue, currentScope, resolvedLeft, resolvedRight)
+                
+                // Construct $$ -> (OP LEFT RIGHT)
+                wholeExpr := &ConsCell{
+                    Car: &Symbol{Value: macroName, BaseValue: BaseValue{Token: operatorToken}},
+                    Cdr: &ConsCell{
+                        Car: resolvedLeft,
+                        Cdr: &ConsCell{
+                            Car: resolvedRight,
+                            Cdr: &Nil{},
+                        },
+                    },
+                    BaseValue: BaseValue{Token: operatorToken},
+                }
+
+                return processMacro(defFull.definitionValue, currentScope, resolvedLeft, resolvedRight, wholeExpr)
             }
         }
     }
 
-    // ERROR REPORTING
     RuntimeError(
         operatorToken, 
         "No match for macro '%s' with left '%s' (%s) and right '%s' (%s)",
@@ -256,12 +288,16 @@ func gatherTypeStrings(val Value) []string {
     return []string{val.GetTypeString()}
 }
 
-func processMacro(macroValue Value, currentScope *Scope, left Value, right Value) Value {
+func processMacro(macroValue Value, currentScope *Scope, left Value, right Value, wholeExpression Value) Value {
 	if left == nil && right == nil {
 		return macroValue
 	}
 	macroValue = subSymbol(macroValue, &Symbol{Value: "$1"}, left, true)
 	macroValue = subSymbol(macroValue, &Symbol{Value: "$2"}, right, true)
+    
+    // NEW: Substitute $$
+    macroValue = subSymbol(macroValue, &Symbol{Value: "$$"}, wholeExpression, true)
+
 	return interpretExpression(macroValue, currentScope)
 }
 

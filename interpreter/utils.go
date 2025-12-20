@@ -63,6 +63,7 @@ func subSymbol(value Value, sym *Symbol, sub Value, limited bool) Value {
         return &ConsCell{
             Car: subSymbol(v.Car, sym, sub, limited),
             Cdr: subSymbol(v.Cdr, sym, sub, limited),
+            BaseValue: v.BaseValue, 
         }
     case *Symbol:
         if v.Value == sym.Value {
