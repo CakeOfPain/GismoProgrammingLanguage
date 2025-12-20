@@ -3,69 +3,98 @@ package interpreter
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"gismolang.org/compiler/config"
 	"gismolang.org/compiler/parser"
 	"gismolang.org/compiler/tokenizer"
 )
 
+var fileLoadCache = make(map[string]Value)
+
 func Builtins() []BuiltinFunction {
     return []BuiltinFunction{
+        // Arithmetic
         {callback: addInt, identifier: "$ADD"},
         {callback: subInt, identifier: "$SUB"},
         {callback: mulInt, identifier: "$MUL"},
         {callback: divInt, identifier: "$DIV"},
         {callback: modInt, identifier: "$MOD"},
-        {callback: shiftLeftInt, identifier: "$SHL"},
-        {callback: shiftRightInt, identifier: "$SHR"},
+        {callback: convInt, identifier: "$INT"},
+
+        // Bitwise
         {callback: bitwiseAnd, identifier: "$BWA"},
         {callback: bitwiseOr, identifier: "$BWO"},
-        {callback: construct, identifier: "$CONS"},
+        {callback: shiftLeftInt, identifier: "$SHL"},
+        {callback: shiftRightInt, identifier: "$SHR"},
+
+        // List/Cons
         {callback: car, identifier: "$CAR"},
         {callback: cdr, identifier: "$CDR"},
-        {callback: printValue, identifier: "$PRINT"},
-        {callback: printlnValue, identifier: "$PRINTLN"},
-        {callback: printScope, identifier: "$SCOPE"},
-        {callback: typedef, identifier: "$TYPEDEF"},
-        {callback: typeof, identifier: "$TYPEOF"},
-        {callback: untype, identifier: "$UNTYPE"},
-        {callback: quote, identifier: "$QUOTE"},
-        {callback: replace, identifier: "$REPLACE"},
-        {callback: eval, identifier: "$EVAL"},
-        {callback: lambda, identifier: "$LAMBDA"},
+        {callback: construct, identifier: "$CONS"},
+
+        // String
         {callback: catString, identifier: "$CAT"},
-        {callback: lenString, identifier: "$STRLEN"},
         {callback: charString, identifier: "$CHAR"},
+        {callback: lenString, identifier: "$STRLEN"},
         {callback: stringify, identifier: "$STR"},
-        {callback: ifFunc, identifier: "$IF"},
-        {callback: greater, identifier: "$GREATER"},
-        {callback: equals, identifier: "$EQUALS"},
-        {callback: get, identifier: "$GET"},
-        {callback: set, identifier: "$SET"},
-        {callback: def, identifier: "$DEF"},
-        {callback: write2Output, identifier: "$WRITE"},
-        {callback: writeByte2Output, identifier: "$WRITEB"},
-        {callback: loadFile, identifier: "$LOAD"},
-        {callback: niler, identifier: "$NIL"},
-        {callback: exporter, identifier: "$EXPORT"},
-        {callback: whiler, identifier: "$WHILE"},
-        {callback: flatter, identifier: "$FLATTEN"},
+
+        // Vector
         {callback: vectorCreate, identifier: "$VECTOR"},
         {callback: vectorGet, identifier: "$VECTOR_GET"},
         {callback: vectorSet, identifier: "$VECTOR_SET"},
         {callback: vectorLen, identifier: "$VECTOR_LEN"},
         {callback: vectorResize, identifier: "$VECTOR_RESIZE"},
-        {callback: foreacher, identifier: "$FOREACH"},
-        {callback: isolator, identifier: "$ISOLATE"},
-        {callback: raiser, identifier: "$RAISE"},
+
+        // Comparison
+        {callback: equals, identifier: "$EQUALS"},
+        {callback: greater, identifier: "$GREATER"},
+
+        // Type
+        {callback: typedef, identifier: "$TYPEDEF"},
+        {callback: typeof, identifier: "$TYPEOF"},
+        {callback: untype, identifier: "$UNTYPE"},
         {callback: unionizer, identifier: "$UNION"},
+
+        // Control Flow
+        {callback: ifFunc, identifier: "$IF"},
+        {callback: whiler, identifier: "$WHILE"},
+        {callback: foreacher, identifier: "$FOREACH"},
+
+        // Scope & Variables
+        {callback: def, identifier: "$DEF"},
+        {callback: get, identifier: "$GET"},
+        {callback: set, identifier: "$SET"},
+
+        // I/O
+        {callback: printValue, identifier: "$PRINT"},
+        {callback: printlnValue, identifier: "$PRINTLN"},
+        {callback: write2Output, identifier: "$WRITE"},
+        {callback: writeByte2Output, identifier: "$WRITEB"},
+
+        // Meta & Evaluation
+        {callback: quote, identifier: "$QUOTE"},
+        {callback: eval, identifier: "$EVAL"},
+        {callback: lambda, identifier: "$LAMBDA"},
+        {callback: replace, identifier: "$REPLACE"},
+
+        // Misc
+        {callback: flatter, identifier: "$FLATTEN"},
+        {callback: raiser, identifier: "$RAISE"},
+        {callback: niler, identifier: "$NIL"},
         {callback: iotainator, identifier: "$IOTA"},
+        {callback: exporter, identifier: "$EXPORT"},
+        {callback: loadFile, identifier: "$LOAD"},
+        {callback: printScope, identifier: "$SCOPE"},
     }
 }
 
 // Helper: Handles Integers only (for Bitwise/Shift/Mod)
 func binaryIntOp(args Value, scope *Scope, op func(a, b int64) int64) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
     left := interpretExpression(argsList[0], scope)
     right := interpretExpression(argsList[1], scope)
 
@@ -80,6 +109,9 @@ func binaryIntOp(args Value, scope *Scope, op func(a, b int64) int64) Value {
 // Helper: Handles Integers OR Floats (for Add/Sub/Mul/Div)
 func binaryNumericOp(args Value, scope *Scope, intOp func(a, b int64) int64, floatOp func(a, b float64) float64) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
     left := interpretExpression(argsList[0], scope)
     right := interpretExpression(argsList[1], scope)
 
@@ -106,44 +138,50 @@ func performFloatOp(left, right Value, op func(a, b float64) float64) Value {
 
     // Cast Left
     switch v := left.(type) {
-    case *Float:   lVal = v.Value
-    case *Integer: lVal = float64(v.Value)
-    default:       return &Nil{}
+    case *Float:
+        lVal = v.Value
+    case *Integer:
+        lVal = float64(v.Value)
+    default:
+        return &Nil{}
     }
 
     // Cast Right
     switch v := right.(type) {
-    case *Float:   rVal = v.Value
-    case *Integer: rVal = float64(v.Value)
-    default:       return &Nil{}
+    case *Float:
+        rVal = v.Value
+    case *Integer:
+        rVal = float64(v.Value)
+    default:
+        return &Nil{}
     }
 
     return &Float{Value: op(lVal, rVal)}
 }
 
 func addInt(args Value, scope *Scope) Value {
-    return binaryNumericOp(args, scope, 
+    return binaryNumericOp(args, scope,
         func(a, b int64) int64 { return a + b },
         func(a, b float64) float64 { return a + b },
     )
 }
 
 func subInt(args Value, scope *Scope) Value {
-    return binaryNumericOp(args, scope, 
+    return binaryNumericOp(args, scope,
         func(a, b int64) int64 { return a - b },
         func(a, b float64) float64 { return a - b },
     )
 }
 
 func mulInt(args Value, scope *Scope) Value {
-    return binaryNumericOp(args, scope, 
+    return binaryNumericOp(args, scope,
         func(a, b int64) int64 { return a * b },
         func(a, b float64) float64 { return a * b },
     )
 }
 
 func divInt(args Value, scope *Scope) Value {
-    return binaryNumericOp(args, scope, 
+    return binaryNumericOp(args, scope,
         func(a, b int64) int64 { return a / b },
         func(a, b float64) float64 { return a / b },
     )
@@ -171,17 +209,23 @@ func bitwiseOr(args Value, scope *Scope) Value {
 
 func construct(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
     left := interpretExpression(argsList[0], scope)
     right := interpretExpression(argsList[1], scope)
     return &ConsCell{
-        Car: left,
-        Cdr: right,
+        Car:       left,
+        Cdr:       right,
         BaseValue: BaseValue{Token: left.GetToken()},
     }
 }
 
 func car(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 1 {
+        return &Nil{}
+    }
     value := interpretExpression(argsList[0], scope)
     if consCell, ok := value.(*ConsCell); ok {
         return consCell.Car
@@ -191,6 +235,9 @@ func car(args Value, scope *Scope) Value {
 
 func cdr(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 1 {
+        return &Nil{}
+    }
     value := interpretExpression(argsList[0], scope)
     if consCell, ok := value.(*ConsCell); ok {
         return consCell.Cdr
@@ -199,14 +246,22 @@ func cdr(args Value, scope *Scope) Value {
 }
 
 func printValue(args Value, scope *Scope) Value {
-    value := interpretExpression(args, scope)
+    argsList := getArgsList(args)
+    if len(argsList) < 1 {
+        return &Nil{}
+    }
+    value := interpretExpression(argsList[0], scope)
     fmt.Print(value)
     return &Nil{}
 }
 
-
 func printlnValue(args Value, scope *Scope) Value {
-    value := interpretExpression(args, scope)
+    argsList := getArgsList(args)
+    if len(argsList) < 1 {
+        fmt.Println()
+        return &Nil{}
+    }
+    value := interpretExpression(argsList[0], scope)
     fmt.Println(value)
     return &Nil{}
 }
@@ -216,20 +271,25 @@ func printScope(args Value, scope *Scope) Value {
     return &Nil{}
 }
 
-
 func typedef(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
     left := interpretExpression(argsList[0], scope)
     right := argsList[1]
     return &TypedValue{
-        Value: left,
-        TypeValue: right,
+        Value:         left,
+        TypeValue:     right,
         TypeFallbacks: argsList[2:],
     }
 }
 
 func typeof(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
     left := interpretExpression(argsList[0], scope)
     right := argsList[1]
     if left.GetTypeString() == right.String() {
@@ -251,15 +311,17 @@ func typeof(args Value, scope *Scope) Value {
     return &Nil{}
 }
 
-
 func untype(args Value, scope *Scope) Value {
-    value := interpretExpression(args, scope)
+    argsList := getArgsList(args)
+    if len(argsList) < 1 {
+        return &Nil{}
+    }
+    value := interpretExpression(argsList[0], scope)
     if typeValue, ok := value.(*TypedValue); ok {
         return typeValue.Value
     }
     return &Nil{}
 }
-
 
 func quote(args Value, scope *Scope) Value {
     return args
@@ -267,23 +329,33 @@ func quote(args Value, scope *Scope) Value {
 
 func replace(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 3 {
+        return &Nil{}
+    }
     expression := interpretExpression(argsList[0], scope)
     symbol := argsList[1]
     replacement := interpretExpression(argsList[2], scope)
 
-    if symbol, ok := symbol.(*Symbol); ok {
-        return subSymbol(expression, symbol, replacement, false)
+    if sym, ok := symbol.(*Symbol); ok {
+        return subSymbol(expression, sym, replacement, false)
     }
 
     return &Nil{}
 }
 
 func eval(args Value, scope *Scope) Value {
-    return interpretExpression(interpretExpression(args, scope), scope)
+    argsList := getArgsList(args)
+    if len(argsList) < 1 {
+        return &Nil{}
+    }
+    return interpretExpression(interpretExpression(argsList[0], scope), scope)
 }
 
 func lambda(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
     left := argsList[0]
     body := argsList[1]
     if sym, ok := left.(*Symbol); ok {
@@ -315,6 +387,9 @@ func lambda(args Value, scope *Scope) Value {
 
 func catString(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
     left := interpretExpression(argsList[0], scope)
     right := interpretExpression(argsList[1], scope)
 
@@ -325,6 +400,9 @@ func catString(args Value, scope *Scope) Value {
 
 func lenString(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 1 {
+        return &Integer{Value: 0}
+    }
     value := interpretExpression(argsList[0], scope)
     return &Integer{
         Value: int64(len(value.String())),
@@ -333,11 +411,18 @@ func lenString(args Value, scope *Scope) Value {
 
 func charString(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
     left := interpretExpression(argsList[0], scope)
     right := interpretExpression(argsList[1], scope)
     if index, ok := right.(*Integer); ok {
+        s := left.String()
+        if index.Value < 0 || int(index.Value) >= len(s) {
+            return &Nil{}
+        }
         return &Integer{
-            Value: int64(left.String()[index.Value]),
+            Value: int64([]byte(s)[int(index.Value)]),
         }
     }
     return &Nil{}
@@ -345,6 +430,9 @@ func charString(args Value, scope *Scope) Value {
 
 func stringify(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 1 {
+        return &Nil{}
+    }
     value := interpretExpression(argsList[0], scope)
     if code, ok := value.(*Integer); ok {
         return &String{
@@ -356,6 +444,9 @@ func stringify(args Value, scope *Scope) Value {
 
 func equals(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
     left := interpretExpression(argsList[0], scope)
     right := interpretExpression(argsList[1], scope)
     if left.String() == right.String() {
@@ -368,6 +459,9 @@ func equals(args Value, scope *Scope) Value {
 
 func greater(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
     left := interpretExpression(argsList[0], scope)
     right := interpretExpression(argsList[1], scope)
     if leftInteger, ok := left.(*Integer); ok {
@@ -384,23 +478,32 @@ func greater(args Value, scope *Scope) Value {
 
 func ifFunc(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 3 {
+        return &Nil{}
+    }
     cond := argsList[0]
     interpretCond := interpretExpression(cond, scope)
     if interpretCond.GetTypeString() == "Nil" {
         return interpretExpression(argsList[2], scope)
     }
-    
+
     return interpretExpression(argsList[1], scope)
 }
 
 func get(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 1 {
+        return &Nil{}
+    }
     index := argsList[0]
     return scope.GetLocal(index)
 }
 
 func set(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
     index := argsList[0]
     value := interpretExpression(argsList[1], scope)
     scope.SetLocal(index, value)
@@ -409,6 +512,9 @@ func set(args Value, scope *Scope) Value {
 
 func def(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
     index := argsList[0]
     value := interpretExpression(argsList[1], scope)
     scope.DefineLocal(index, value)
@@ -417,18 +523,23 @@ func def(args Value, scope *Scope) Value {
 
 func write2Output(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 1 {
+        return &Nil{}
+    }
     message := interpretExpression(argsList[0], scope).String()
-    if config.OutputEnabled {
+    if config.OutputEnabled && config.OutputFile != nil {
         config.OutputFile.WriteString(message)
     }
     return &Nil{}
 }
 
-
 func writeByte2Output(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 1 {
+        return &Nil{}
+    }
     result := interpretExpression(argsList[0], scope)
-    if number, ok := result.(*Integer); ok && config.OutputEnabled {
+    if number, ok := result.(*Integer); ok && config.OutputEnabled && config.OutputFile != nil {
         config.OutputFile.Write([]byte{byte(number.Value)})
     }
     return &Nil{}
@@ -440,19 +551,51 @@ func niler(args Value, scope *Scope) Value {
 
 func loadFile(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
-    source := interpretExpression(argsList[0], scope).String()
-    bytes, ok := os.ReadFile(source)
-    if ok != nil{
+    if len(argsList) < 1 {
         return &Nil{}
     }
-    tokens := tokenizer.Tokenize(string(bytes), source)
-    ast := parser.Parse(tokens, source)
-    value := syntaxNode2Value(ast)
 
-    if consCell, ok := value.(*ConsCell); ok {
+    // 1. Resolve the absolute path to ensure cache consistency
+    relPath := interpretExpression(argsList[0], scope).String()
+    absPath, err := filepath.Abs(relPath)
+    if err != nil {
+        // Fallback to relative path if absolute resolution fails
+        absPath = relPath
+    }
+
+    var programValue Value
+
+    // 2. Check Cache
+    if cached, found := fileLoadCache[absPath]; found {
+        programValue = cached
+    } else {
+        // 3. Cache Miss: Read from disk
+        bytes, err := os.ReadFile(absPath)
+        if err != nil {
+            // File not found or unreadable
+            return &Nil{}
+        }
+
+        // 4. Tokenize and Parse
+        tokens := tokenizer.Tokenize(string(bytes), absPath)
+        ast := parser.Parse(tokens, absPath)
+        programValue = syntaxNode2Value(ast)
+
+        // 5. Update Cache
+        fileLoadCache[absPath] = programValue
+    }
+
+    // 6. Execute the program
+    // We iterate over the parsed structure and interpret each expression.
+    // This runs the code every time `load` is called, even if cached.
+    if consCell, ok := programValue.(*ConsCell); ok {
+        // Assuming index 0 is the root node (e.g., "PROGRAM"), we start from 1
         for i := 1; i < consCell.Length(); i++ {
             interpretExpression(consCell.Get(i), scope)
         }
+    } else {
+        // Handle case where file might contain a single expression not wrapped in a list
+        interpretExpression(programValue, scope)
     }
 
     return &Nil{}
@@ -460,6 +603,9 @@ func loadFile(args Value, scope *Scope) Value {
 
 func exporter(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
     key := interpretExpression(argsList[0], scope)
     // key := argsList[0]
     value := interpretExpression(argsList[1], scope)
@@ -469,6 +615,9 @@ func exporter(args Value, scope *Scope) Value {
 
 func whiler(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
     cond := argsList[0]
     body := argsList[1]
     for interpretExpression(cond, scope).GetTypeString() != "Nil" {
@@ -479,6 +628,9 @@ func whiler(args Value, scope *Scope) Value {
 
 func flatter(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
     value := interpretExpression(argsList[0], scope)
     seperator := interpretExpression(argsList[1], scope)
     return &Vector{
@@ -488,9 +640,15 @@ func flatter(args Value, scope *Scope) Value {
 
 func vectorCreate(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 1 {
+        return &Nil{}
+    }
     sizeVal := interpretExpression(argsList[0], scope)
     if sizeInt, ok := sizeVal.(*Integer); ok {
-        elements := make([]Value, sizeInt.Value)
+        if sizeInt.Value < 0 {
+            return &Nil{}
+        }
+        elements := make([]Value, int(sizeInt.Value))
         for i := range elements {
             elements[i] = &Nil{}
         }
@@ -503,12 +661,15 @@ func vectorCreate(args Value, scope *Scope) Value {
 
 func vectorGet(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
     vecVal := interpretExpression(argsList[0], scope)
     idxVal := interpretExpression(argsList[1], scope)
     if vec, ok := vecVal.(*Vector); ok {
         if idx, ok := idxVal.(*Integer); ok {
             if idx.Value >= 0 && idx.Value < int64(len(vec.Elements)) {
-                return vec.Elements[idx.Value]
+                return vec.Elements[int(idx.Value)]
             }
         }
     }
@@ -517,13 +678,16 @@ func vectorGet(args Value, scope *Scope) Value {
 
 func vectorSet(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 3 {
+        return &Nil{}
+    }
     vecVal := interpretExpression(argsList[0], scope)
     idxVal := interpretExpression(argsList[1], scope)
     valueVal := interpretExpression(argsList[2], scope)
     if vec, ok := vecVal.(*Vector); ok {
         if idx, ok := idxVal.(*Integer); ok {
             if idx.Value >= 0 && idx.Value < int64(len(vec.Elements)) {
-                vec.Elements[idx.Value] = valueVal
+                vec.Elements[int(idx.Value)] = valueVal
                 return valueVal
             }
         }
@@ -533,6 +697,9 @@ func vectorSet(args Value, scope *Scope) Value {
 
 func vectorLen(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 1 {
+        return &Nil{}
+    }
     vecVal := interpretExpression(argsList[0], scope)
     if vec, ok := vecVal.(*Vector); ok {
         return &Integer{Value: int64(len(vec.Elements))}
@@ -542,6 +709,9 @@ func vectorLen(args Value, scope *Scope) Value {
 
 func vectorResize(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
     vecVal := interpretExpression(argsList[0], scope)
     newSizeVal := interpretExpression(argsList[1], scope)
     if vec, ok := vecVal.(*Vector); ok {
@@ -549,25 +719,25 @@ func vectorResize(args Value, scope *Scope) Value {
             if newSize.Value < 0 {
                 return &Nil{}
             }
-            oldLen := int64(len(vec.Elements))
-            if newSize.Value == oldLen {
+            oldLenInt := len(vec.Elements)
+            newSizeInt := int(newSize.Value)
+            if newSizeInt == oldLenInt {
                 return vec
             }
-            if newSize.Value > oldLen {
-                extension := make([]Value, newSize.Value-oldLen)
+            if newSizeInt > oldLenInt {
+                extension := make([]Value, newSizeInt-oldLenInt)
                 for i := range extension {
                     extension[i] = &Nil{}
                 }
                 vec.Elements = append(vec.Elements, extension...)
             } else {
-                vec.Elements = vec.Elements[:newSize.Value]
+                vec.Elements = vec.Elements[:newSizeInt]
             }
             return vec
         }
     }
     return &Nil{}
 }
-
 
 func isolator(value Value, scope *Scope) Value {
     isolatedScope := NewEmptyScope()
@@ -576,10 +746,13 @@ func isolator(value Value, scope *Scope) Value {
 
 func raiser(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
-    
+    if len(argsList) < 1 {
+        return &Nil{}
+    }
+
     // 1. The marked value
-    targetValue := argsList[0] 
-    
+    targetValue := argsList[0]
+
     // 2. The Error Message
     message := "An error occurred"
     if len(argsList) > 1 {
@@ -606,10 +779,13 @@ func unionizer(args Value, scope *Scope) Value {
 
 func foreacher(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
+    if len(argsList) < 3 {
+        return &Nil{}
+    }
     collectionVal := interpretExpression(argsList[0], scope)
     variableName := interpretExpression(argsList[1], scope)
     body := argsList[2]
-    
+
     if varSym, ok := variableName.(*Symbol); ok {
         switch collection := collectionVal.(type) {
         case *Vector:
@@ -634,4 +810,31 @@ func iotainator(args Value, scope *Scope) Value {
     return &Integer{
         Value: int64(currentValue),
     }
+}
+
+func convInt(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    if len(argsList) < 1 {
+        return &Nil{}
+    }
+    value := interpretExpression(argsList[0], scope)
+
+    switch v := value.(type) {
+    case *Integer:
+        return v
+    case *Float:
+        return &Integer{
+            Value: int64(v.Value),
+        }
+    case *String:
+        var intValue int64
+        _, err := fmt.Sscanf(v.Value, "%d", &intValue)
+        if err == nil {
+            return &Integer{
+                Value: intValue,
+            }
+        }
+    }
+
+    return &Nil{}
 }
