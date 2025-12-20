@@ -63,6 +63,7 @@ func Builtins() []BuiltinFunction {
     }
 }
 
+// Helper: Handles Integers only (for Bitwise/Shift/Mod)
 func binaryIntOp(args Value, scope *Scope, op func(a, b int64) int64) Value {
     argsList := getArgsList(args)
     left := interpretExpression(argsList[0], scope)
@@ -76,20 +77,76 @@ func binaryIntOp(args Value, scope *Scope, op func(a, b int64) int64) Value {
     return &Nil{}
 }
 
+// Helper: Handles Integers OR Floats (for Add/Sub/Mul/Div)
+func binaryNumericOp(args Value, scope *Scope, intOp func(a, b int64) int64, floatOp func(a, b float64) float64) Value {
+    argsList := getArgsList(args)
+    left := interpretExpression(argsList[0], scope)
+    right := interpretExpression(argsList[1], scope)
+
+    // Type Promotion: If either side is Float, do Float math
+    if _, ok := left.(*Float); ok {
+        return performFloatOp(left, right, floatOp)
+    }
+    if _, ok := right.(*Float); ok {
+        return performFloatOp(left, right, floatOp)
+    }
+
+    // Default: Integer math
+    if leftInt, ok := left.(*Integer); ok {
+        if rightInt, ok := right.(*Integer); ok {
+            return &Integer{Value: intOp(leftInt.Value, rightInt.Value)}
+        }
+    }
+    return &Nil{}
+}
+
+// Helper: Casts mixed numbers to float and executes operation
+func performFloatOp(left, right Value, op func(a, b float64) float64) Value {
+    var lVal, rVal float64
+
+    // Cast Left
+    switch v := left.(type) {
+    case *Float:   lVal = v.Value
+    case *Integer: lVal = float64(v.Value)
+    default:       return &Nil{}
+    }
+
+    // Cast Right
+    switch v := right.(type) {
+    case *Float:   rVal = v.Value
+    case *Integer: rVal = float64(v.Value)
+    default:       return &Nil{}
+    }
+
+    return &Float{Value: op(lVal, rVal)}
+}
+
 func addInt(args Value, scope *Scope) Value {
-    return binaryIntOp(args, scope, func(a, b int64) int64 { return a + b })
+    return binaryNumericOp(args, scope, 
+        func(a, b int64) int64 { return a + b },
+        func(a, b float64) float64 { return a + b },
+    )
 }
 
 func subInt(args Value, scope *Scope) Value {
-    return binaryIntOp(args, scope, func(a, b int64) int64 { return a - b })
+    return binaryNumericOp(args, scope, 
+        func(a, b int64) int64 { return a - b },
+        func(a, b float64) float64 { return a - b },
+    )
 }
 
 func mulInt(args Value, scope *Scope) Value {
-    return binaryIntOp(args, scope, func(a, b int64) int64 { return a * b })
+    return binaryNumericOp(args, scope, 
+        func(a, b int64) int64 { return a * b },
+        func(a, b float64) float64 { return a * b },
+    )
 }
 
 func divInt(args Value, scope *Scope) Value {
-    return binaryIntOp(args, scope, func(a, b int64) int64 { return a / b })
+    return binaryNumericOp(args, scope, 
+        func(a, b int64) int64 { return a / b },
+        func(a, b float64) float64 { return a / b },
+    )
 }
 
 func modInt(args Value, scope *Scope) Value {
@@ -116,28 +173,28 @@ func construct(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
     left := interpretExpression(argsList[0], scope)
     right := interpretExpression(argsList[1], scope)
-	return &ConsCell{
-		Car: left,
-		Cdr: right,
-	}
+    return &ConsCell{
+        Car: left,
+        Cdr: right,
+    }
 }
 
 func car(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
     value := interpretExpression(argsList[0], scope)
-	if consCell, ok := value.(*ConsCell); ok {
-		return consCell.Car
-	}
-	return &Nil{}
+    if consCell, ok := value.(*ConsCell); ok {
+        return consCell.Car
+    }
+    return &Nil{}
 }
 
 func cdr(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
     value := interpretExpression(argsList[0], scope)
-	if consCell, ok := value.(*ConsCell); ok {
-		return consCell.Cdr
-	}
-	return &Nil{}
+    if consCell, ok := value.(*ConsCell); ok {
+        return consCell.Cdr
+    }
+    return &Nil{}
 }
 
 func printValue(args Value, scope *Scope) Value {
@@ -163,11 +220,11 @@ func typedef(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
     left := interpretExpression(argsList[0], scope)
     right := argsList[1]
-	return &TypedValue{
-		Value: left,
-		TypeValue: right,
+    return &TypedValue{
+        Value: left,
+        TypeValue: right,
         TypeFallbacks: argsList[2:],
-	}
+    }
 }
 
 func typeof(args Value, scope *Scope) Value {
@@ -190,7 +247,7 @@ func typeof(args Value, scope *Scope) Value {
         }
     }
 
-	return &Nil{}
+    return &Nil{}
 }
 
 
@@ -199,12 +256,12 @@ func untype(args Value, scope *Scope) Value {
     if typeValue, ok := value.(*TypedValue); ok {
         return typeValue.Value
     }
-	return &Nil{}
+    return &Nil{}
 }
 
 
 func quote(args Value, scope *Scope) Value {
-	return args
+    return args
 }
 
 func replace(args Value, scope *Scope) Value {
@@ -221,7 +278,7 @@ func replace(args Value, scope *Scope) Value {
 }
 
 func eval(args Value, scope *Scope) Value {
-	return interpretExpression(interpretExpression(args, scope), scope)
+    return interpretExpression(interpretExpression(args, scope), scope)
 }
 
 func lambda(args Value, scope *Scope) Value {
@@ -258,17 +315,17 @@ func catString(args Value, scope *Scope) Value {
     left := interpretExpression(argsList[0], scope)
     right := interpretExpression(argsList[1], scope)
 
-	return &String{
+    return &String{
         Value: left.String() + right.String(),
-	}
+    }
 }
 
 func lenString(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
     value := interpretExpression(argsList[0], scope)
-	return &Integer{
+    return &Integer{
         Value: int64(len(value.String())),
-	}
+    }
 }
 
 func charString(args Value, scope *Scope) Value {

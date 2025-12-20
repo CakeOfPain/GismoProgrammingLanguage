@@ -19,6 +19,20 @@ func (integer Integer) String() string {
     return strconv.FormatInt(integer.Value, 10)
 }
 
+// NEW: Float Type
+type Float struct {
+    Value float64
+}
+
+func (f Float) GetTypeString() string {
+    return "float"
+}
+
+func (f Float) String() string {
+    // Format -1 uses the smallest number of digits necessary
+    return strconv.FormatFloat(f.Value, 'f', -1, 64)
+}
+
 type String struct {
     Value string
 }

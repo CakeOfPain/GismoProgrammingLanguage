@@ -2,6 +2,7 @@ package interpreter
 
 import (
 	"strconv"
+	"strings"
 
 	"gismolang.org/compiler/parser"
 	"gismolang.org/compiler/tokenizer/tokentype"
@@ -11,10 +12,27 @@ func syntaxNode2Value(expression *parser.SyntaxNode) Value {
     if(expression.Value != nil) {
         switch(expression.Value.TokenType) {
         case tokentype.Number:
-            value, _ := strconv.ParseInt(expression.Value.Value, 10, 64)
+            tokenVal := expression.Value.Value
+            
+            // Check for Dot -> Float (Handles "1.23" and ".123")
+            if strings.Contains(tokenVal, ".") {
+                // If starts with dot, prepend 0 for safety if needed
+                if strings.HasPrefix(tokenVal, ".") {
+                    tokenVal = "0" + tokenVal
+                }
+                value, _ := strconv.ParseFloat(tokenVal, 64)
+                return &Float{
+                    Value: value,
+                }
+            }
+            
+            // Check for Integer (Base 10, Hex, Bin, Octal)
+            // base=0 automatically detects 0x, 0b, 0o
+            value, _ := strconv.ParseInt(tokenVal, 0, 64)
             return &Integer{
                 Value: value,
             }
+
         case tokentype.String:
             return &String{
                 Value: expression.Value.Value,
