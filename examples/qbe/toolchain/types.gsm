@@ -1,5 +1,16 @@
 
 
-$Function ::= $struct(name, returnType, arguments, addr)
-$Variable ::= $struct(name, type, addr)
-$Value ::= $struct(type, addr)
+$Function ::= $struct(
+    name,
+    returnType,
+    arguments,
+    addr)
+
+$Variable ::= $struct(
+    name,
+    type,
+    addr)
+
+$Value ::= $struct(
+    type,
+    addr)

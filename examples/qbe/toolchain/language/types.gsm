@@ -1,0 +1,21 @@
+
+i32 ::= $TYPEDEF("w", TYPE)
+f64 ::= $TYPEDEF("d", TYPE)
+
+TYPE2TYPENAME ::= $LAMBDA(x, {
+    t ::= $UNTYPE(x)
+    $IF(t == "w", VALUE_I32,
+    $IF(t == "d", VALUE_F64, {})) 
+})
+
+TYPE2NATIVE ::= $LAMBDA(x, {
+    t ::= $UNTYPE(x)
+    $IF(t == "w", int,
+    $IF(t == "d", float, {})) 
+})
+
+TYPE2LANGTYPE ::= $LAMBDA(x, {
+    t ::= $UNTYPE(x)
+    $IF(t == "w", "i32",
+    $IF(t == "d", "f64", {})) 
+})

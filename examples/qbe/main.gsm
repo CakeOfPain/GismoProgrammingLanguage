@@ -1,15 +1,11 @@
 
-
-sum2(a: i32, b: i32): i32
-
-add(a: i32, b: i32): i32 {
-    sum2(a,b)
+funny(a: i32, b: f64): f64 {
+    b + 1.0
 }
 
 main(): i32 {
-    a <- 20
-    b <- 30
-    add(a,b)
+    a <- 2.0
+    b <- 1
+    funny(a, b)
+    0
 }
-
-sum2 {a+b}

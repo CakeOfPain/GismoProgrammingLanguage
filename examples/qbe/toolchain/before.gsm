@@ -175,6 +175,34 @@ Vector includes (*) ::= {
   iterator(0)
 }
 
+// ZIP (Combine two vectors into a vector of pairs)
+Vector zip Vector ::= {
+  // Args:
+  //  $1 = First Vector (left side)
+  //  $2 = Second Vector (right side)
+  
+  len1 ::= $VECTOR_LEN($1)
+  len2 ::= $VECTOR_LEN($2)
+
+  // Determine the shorter length (truncate to match)
+  limit ::= $IF($GREATER(len1, len2), len2, len1)
+
+  newVector ::= $VECTOR(limit)
+
+  iterator ::= $LAMBDA(i, {
+    $IF($GREATER(limit, i), {
+      // Use $CONS to create the pair [e1, e2]
+      pair ::= $CONS($VECTOR_GET($1, i), $VECTOR_GET($2, i))
+
+      $VECTOR_SET(newVector, i, pair)
+      iterator($ADD(i, 1))
+    }, {})
+  })
+
+  iterator(0)
+  newVector
+}
+
 // COMPOSITE
 $struct ::= $TYPEDEF(0, $struct)
 
@@ -216,4 +244,4 @@ $KEYWORD(symbol) ::= {$EXPORT($2, $TYPEDEF($NIL(), $2))}
 $NOT ::= $LAMBDA(x, $EQUALS(x, $NIL()))
 
 $LOAD("toolchain/types.gsm")
-$LOAD("toolchain/language.gsm")
+$LOAD("toolchain/language/main.gsm")
