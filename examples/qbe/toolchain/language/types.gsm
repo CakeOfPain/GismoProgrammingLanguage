@@ -1,21 +1,24 @@
 
-i32 ::= $TYPEDEF("w", TYPE)
-f64 ::= $TYPEDEF("d", TYPE)
+void ::= $TYPEDEF($Type(void, "", ""), void, TYPE)
+i32 ::= $TYPEDEF($Type(i32, "", "w"), i32, TYPE)
+f64 ::= $TYPEDEF($Type(f64, "d_", "d"), f64, TYPE)
+
+// str ::= $TYPEDEF($Type(str, "", "l"), str, TYPE)
 
 TYPE2TYPENAME ::= $LAMBDA(x, {
-    t ::= $UNTYPE(x)
+    t ::= $UNTYPE(x).nativeType
     $IF(t == "w", VALUE_I32,
     $IF(t == "d", VALUE_F64, {})) 
 })
 
 TYPE2NATIVE ::= $LAMBDA(x, {
-    t ::= $UNTYPE(x)
+    t ::= $UNTYPE(x).nativeType
     $IF(t == "w", int,
     $IF(t == "d", float, {})) 
 })
 
 TYPE2LANGTYPE ::= $LAMBDA(x, {
-    t ::= $UNTYPE(x)
+    t ::= $UNTYPE(x).nativeType
     $IF(t == "w", "i32",
     $IF(t == "d", "f64", {})) 
 })

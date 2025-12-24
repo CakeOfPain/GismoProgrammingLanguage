@@ -1,0 +1,35 @@
+
+// int:
+i32(int) ::= $2
+i32(float) ::= $INT($2)
+
+i32(VALUE_I32) ::= $2
+i32(VALUE_F64) ::= {
+    value ::= $UNTYPE($2)
+    addr ::= $CAT("%t", $IOTA())
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w dtosi ")
+    $WRITE(value.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(i32, addr), VALUE_I32)
+}
+
+// float:
+f64(int) ::= $2 + 0.0
+f64(float) ::= $2
+f64(VALUE_F64) ::= $2
+f64(VALUE_I32) ::= {
+    value ::= $UNTYPE($2)
+    addr ::= $CAT("%t", $IOTA())
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =d swtof ")
+    $WRITE(value.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(f64, addr), VALUE_F64)
+}

@@ -1,0 +1,125 @@
+// int:
+
+VALUE_I32 * int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $CAT("%t", $IOTA())
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w mul ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(i32, addr), VALUE_I32)
+}
+
+int * VALUE_I32 ::= {
+    value ::= $UNTYPE($2)
+    addr ::= $CAT("%t", $IOTA())
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w mul ")
+    $WRITE($1)
+    $WRITE(", ")
+    $WRITE(value.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(i32, addr), VALUE_I32)
+}
+
+VALUE_I32 * VALUE_I32 ::= {
+    value_a ::= $UNTYPE($1)
+    value_b ::= $UNTYPE($2)
+    addr ::= $CAT("%t", $IOTA())
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w mul ")
+    $WRITE(value_a.addr)
+    $WRITE(", ")
+    $WRITE(value_b.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(i32, addr), VALUE_I32)
+}
+
+// float:
+
+VALUE_F64 * float ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $CAT("%t", $IOTA())
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =d mul ")
+    $WRITE(value.addr)
+    $WRITE(", d_")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(f64, addr), VALUE_F64)
+}
+
+float * VALUE_F64 ::= {
+    value ::= $UNTYPE($2)
+    addr ::= $CAT("%t", $IOTA())
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =d mul d_")
+    $WRITE($1)
+    $WRITE(", ")
+    $WRITE(value.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(f64, addr), VALUE_F64)
+}
+
+VALUE_F64 * int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $CAT("%t", $IOTA())
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =d mul ")
+    $WRITE(value.addr)
+    $WRITE(", d_")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(f64, addr), VALUE_F64)
+}
+
+int * VALUE_F64 ::= {
+    value ::= $UNTYPE($2)
+    addr ::= $CAT("%t", $IOTA())
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =d mul d_")
+    $WRITE($1)
+    $WRITE(", ")
+    $WRITE(value.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(f64, addr), VALUE_F64)
+}
+
+VALUE_F64 * VALUE_F64 ::= {
+    value_a ::= $UNTYPE($1)
+    value_b ::= $UNTYPE($2)
+    addr ::= $CAT("%t", $IOTA())
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =d mul ")
+    $WRITE(value_a.addr)
+    $WRITE(", ")
+    $WRITE(value_b.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(f64, addr), VALUE_F64)
+}

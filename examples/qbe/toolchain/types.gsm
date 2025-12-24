@@ -1,4 +1,9 @@
 
+$Type ::= $struct(
+    id,
+    prefix,
+    nativeType
+)
 
 $Function ::= $struct(
     name,

@@ -1,11 +1,12 @@
 
-funny(a: i32, b: f64): f64 {
-    b + 1.0
+sumOfSquares(x: f64, y: f64): f64 {
+    x*x + y*y
 }
 
 main(): i32 {
-    a <- 2.0
-    b <- 1
-    funny(a, b)
-    0
+    helloWorld <- "Hello World!" // fat-string
+
+    a <- 2
+    b <- 3
+    i32(sumOfSquares(f64(a),f64(b)))
 }

@@ -1,0 +1,30 @@
+
+// int:
+symbol <- int ::= {
+    $WRITE("\t%")
+    $WRITE($1)
+    $WRITE(" =w copy ")
+    $WRITE($2)
+    $WRITE("\n")
+    $EXPORT($1, $TYPEDEF($Value(i32, $CAT("%", $1)), VALUE_I32))
+}
+
+symbol <- VALUE_I32 ::= {
+    value ::= $UNTYPE($2)
+    $EXPORT($1, $TYPEDEF(value, VALUE_I32))
+}
+
+// float:
+symbol <- float ::= {
+    $WRITE("\t%")
+    $WRITE($1)
+    $WRITE(" =d copy d_")
+    $WRITE($2)
+    $WRITE("\n")
+    $EXPORT($1, $TYPEDEF($Value(f64, $CAT("%", $1)), VALUE_F64))
+}
+
+symbol <- VALUE_F64 ::= {
+    value ::= $UNTYPE($2)
+    $EXPORT($1, $TYPEDEF(value, VALUE_F64))
+}

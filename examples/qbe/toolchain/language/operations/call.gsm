@@ -1,0 +1,78 @@
+
+// Function Calls 
+FunctionProto() ::= {
+    fn_meta ::= $UNTYPE($1)
+    
+    $IF($EQUALS($VECTOR_LEN(fn_meta.arguments), 0), {}, {
+        $RAISE($$, $CAT("Argument count mismatch for function ", fn_meta.name))
+    })
+
+    retAddr ::= $CAT("%t", $IOTA())
+    retTypeStr ::= $UNTYPE(fn_meta.returnType).nativeType
+
+    $WRITE("\t")
+    $WRITE(retAddr)
+    $WRITE(" =")
+    $WRITE(retTypeStr)
+    $WRITE(" call $")
+    $WRITE(fn_meta.addr)
+    $WRITE("()\n")
+
+    // Dynamically type the return value based on function return type string
+    $IF($EQUALS(retTypeStr, "w"), {
+        $TYPEDEF($Value(fn_meta.returnType, retAddr), VALUE_I32)
+    }, $IF($EQUALS(retTypeStr, "d"), {
+        $TYPEDEF($Value(fn_meta.returnType, retAddr), VALUE_F64)
+    }, {
+        $Value(fn_meta.returnType, retAddr)
+    }))
+}
+
+FunctionProto(*) ::= {
+    fn_meta ::= $UNTYPE($1)
+    given_args ::= $FLATTEN($QUOTE($2), ",") map $LAMBDA(x, $EVAL(x))
+
+    $IF($EQUALS($VECTOR_LEN(fn_meta.arguments), $VECTOR_LEN(given_args)), {}, {
+        $RAISE($$, $CAT("Argument count mismatch for function ", fn_meta.name))
+    })
+
+    formatted_args ::= (fn_meta.arguments zip given_args) map $LAMBDA(arg_def, {
+        fn_meta_arg ::= $CAR(arg_def)
+        given_arg ::= $CDR(arg_def)
+
+        expected_native_type ::= TYPE2NATIVE(fn_meta_arg.type)
+        expected_type ::= TYPE2TYPENAME(fn_meta_arg.type)
+
+        isNativeType ::= $EVAL($REPLACE($QUOTE($TYPEOF(given_arg, T)), T, expected_native_type))
+        isCorrectType ::= $EVAL($REPLACE($QUOTE($TYPEOF(given_arg, T)), T, expected_type))
+
+        $IF(isNativeType, {
+            $CAT($UNTYPE(fn_meta_arg.type).nativeType, $CAT(" ", given_arg))
+        }, $IF(isCorrectType, {
+            $CAT($UNTYPE(fn_meta_arg.type).nativeType, $CAT(" ", $UNTYPE(given_arg).addr))
+        }, {
+            $RAISE($$, $CAT("Type Mismatch: Function expects ", $CAT($UNTYPE(fn_meta_arg.type).id, $CAT(" for argument ", fn_meta_arg.name))))
+        }))
+    })
+
+    retAddr ::= $CAT("%t", $IOTA())
+    retTypeStr ::= $UNTYPE(fn_meta.returnType).nativeType
+
+    $WRITE("\t")
+    $WRITE(retAddr)
+    $WRITE(" =")
+    $WRITE(retTypeStr)
+    $WRITE(" call $")
+    $WRITE(fn_meta.addr)
+    $WRITE("(")
+    $WRITE(formatted_args join ", ")
+    $WRITE(")\n")
+
+    $IF($EQUALS(retTypeStr, "w"), {
+        $TYPEDEF($Value(fn_meta.returnType, retAddr), VALUE_I32)
+    }, $IF($EQUALS(retTypeStr, "d"), {
+        $TYPEDEF($Value(fn_meta.returnType, retAddr), VALUE_F64)
+    }, {
+        $Value(fn_meta.returnType, retAddr)
+    }))
+}
