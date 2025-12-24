@@ -1,0 +1,14 @@
+
+global_strings ::= $GET($GLOBAL_STRINGS)
+$FOREACH(global_strings, x, {
+    $WRITE("data $str")
+    $WRITE($CDR($QUOTE(x)))
+    $WRITE(" = {")
+    $FOREACH($CAR($QUOTE(x)), c, {
+        $WRITE("b ")
+        $WRITE(c)
+        $WRITE(", ")
+    })
+    $WRITE("b 0}")
+    $WRITE("\n")
+})

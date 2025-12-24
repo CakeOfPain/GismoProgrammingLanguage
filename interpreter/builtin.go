@@ -792,6 +792,12 @@ func foreacher(args Value, scope *Scope) Value {
                 newBody := subSymbol(body, varSym, element, true)
                 interpretExpression(newBody, scope)
             }
+        case *String:
+            for _, b := range []byte(collection.Value) {
+                element := &Integer{Value: int64(b), BaseValue: BaseValue{Token: collection.GetToken()}}
+                newBody := subSymbol(body, varSym, element, true)
+                interpretExpression(newBody, scope)
+            }
         }
     }
     return &Nil{}

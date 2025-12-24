@@ -11,14 +11,16 @@ FunctionProto() ::= {
     retTypeStr ::= $UNTYPE(fn_meta.returnType).nativeType
 
     $WRITE("\t")
-    $WRITE(retAddr)
-    $WRITE(" =")
-    $WRITE(retTypeStr)
-    $WRITE(" call $")
+    $IF($EQUALS(retTypeStr, ""), {}, { // ELSE:
+        $WRITE(retAddr)
+        $WRITE(" =")
+        $WRITE(retTypeStr)
+        $WRITE(" ")
+    })
+    $WRITE("call $")
     $WRITE(fn_meta.addr)
     $WRITE("()\n")
 
-    // Dynamically type the return value based on function return type string
     $IF($EQUALS(retTypeStr, "w"), {
         $TYPEDEF($Value(fn_meta.returnType, retAddr), VALUE_I32)
     }, $IF($EQUALS(retTypeStr, "d"), {
@@ -47,7 +49,12 @@ FunctionProto(*) ::= {
         isCorrectType ::= $EVAL($REPLACE($QUOTE($TYPEOF(given_arg, T)), T, expected_type))
 
         $IF(isNativeType, {
-            $CAT($UNTYPE(fn_meta_arg.type).nativeType, $CAT(" ", given_arg))
+            $IF($TYPEOF(given_arg, string), {
+                index ::= $DECLARE_STRING(given_arg)
+                $CAT("l $str", index)
+            }, { // ELSE:
+                $CAT($UNTYPE(fn_meta_arg.type).nativeType, $CAT(" ", given_arg))
+            })
         }, $IF(isCorrectType, {
             $CAT($UNTYPE(fn_meta_arg.type).nativeType, $CAT(" ", $UNTYPE(given_arg).addr))
         }, {
@@ -58,11 +65,15 @@ FunctionProto(*) ::= {
     retAddr ::= $CAT("%t", $IOTA())
     retTypeStr ::= $UNTYPE(fn_meta.returnType).nativeType
 
+
     $WRITE("\t")
-    $WRITE(retAddr)
-    $WRITE(" =")
-    $WRITE(retTypeStr)
-    $WRITE(" call $")
+    $IF($EQUALS(retTypeStr, ""), {}, { // ELSE:
+        $WRITE(retAddr)
+        $WRITE(" =")
+        $WRITE(retTypeStr)
+        $WRITE(" ")
+    })
+    $WRITE("call $")
     $WRITE(fn_meta.addr)
     $WRITE("(")
     $WRITE(formatted_args join ", ")

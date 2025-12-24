@@ -142,11 +142,11 @@ Vector some (*) ::= {
   iterator ::= $LAMBDA(i, {
     $IF($GREATER(len, i), {
       $IF(f($VECTOR_GET($1, i)), {
-        true
+        1
       }, {
         iterator($ADD(i, 1))
       })
-    }, false)
+    }, $NIL())
   })
 
   iterator(0)
@@ -164,8 +164,8 @@ Vector every (*) ::= {
     $IF($GREATER(len, i), {
       $IF(f($VECTOR_GET($1, i)), {
         iterator($ADD(i, 1))
-      }, false)
-    }, true)
+      }, $NIL())
+    }, 1)
   })
 
   iterator(0)
@@ -183,11 +183,32 @@ Vector includes (*) ::= {
     $IF($GREATER(len, i), {
       element ::= $VECTOR_GET($1, i)
       $IF($EQUALS(element, value), {
-        true
+        1
       }, {
         iterator($ADD(i, 1))
       })
-    }, false)
+    }, $NIL())
+  })
+
+  iterator(0)
+}
+
+Vector indexOf (*) ::= {
+  // Args:
+  //  $1 = originalVector
+  //  $2 = value to check for
+  len ::= $VECTOR_LEN($1)
+  value ::= $2
+
+  iterator ::= $LAMBDA(i, {
+    $IF($GREATER(len, i), {
+      element ::= $VECTOR_GET($1, i)
+      $IF($EQUALS(element, value), {
+        i     // Match found: return current index
+      }, {
+        iterator($ADD(i, 1))
+      })
+    }, -1)    // End of vector reached: return -1 (not found)
   })
 
   iterator(0)
@@ -260,6 +281,21 @@ $KEYWORD ::= $TYPEDEF($NIL(), $KEYWORD)
 $KEYWORD(symbol) ::= {$EXPORT($2, $TYPEDEF($NIL(), $2))}
 
 $NOT ::= $LAMBDA(x, $EQUALS(x, $NIL()))
+
+$DEF($GLOBAL_STRINGS, $VECTOR(0))
+$DECLARE_STRING ::= $LAMBDA(x, {
+  str ::= x
+  global_strings ::= $GET($GLOBAL_STRINGS)
+  index ::= global_strings indexOf str
+  $IF($EQUALS(index, -1), {
+    i ::= $VECTOR_LEN(global_strings)
+    $VECTOR_RESIZE(global_strings, i+1)
+    $VECTOR_SET(global_strings, i, $CONS(str, i))
+    i
+  }, {
+    index
+  })
+})
 
 $LOAD("toolchain/types.gsm")
 $LOAD("toolchain/language/main.gsm")

@@ -1,12 +1,14 @@
 
-sumOfSquares(x: f64, y: f64): f64 {
-    x*x + y*y
+puts(message: str): void
+
+add(a: i32, b: i32): i32 {
+    a + b
 }
 
 main(): i32 {
-    helloWorld <- "Hello World!" // fat-string
+    c <- add(1,2)
 
-    a <- 2
-    b <- 3
-    i32(sumOfSquares(f64(a),f64(b)))
+    puts("Hello world!")
+
+    c
 }

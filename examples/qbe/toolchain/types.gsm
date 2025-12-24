@@ -2,7 +2,9 @@
 $Type ::= $struct(
     id,
     prefix,
-    nativeType
+    nativeType,
+    typeName,
+    constantType
 )
 
 $Function ::= $struct(

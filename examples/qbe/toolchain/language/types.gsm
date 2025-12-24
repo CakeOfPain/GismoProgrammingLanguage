@@ -1,24 +1,44 @@
 
-void ::= $TYPEDEF($Type(void, "", ""), void, TYPE)
-i32 ::= $TYPEDEF($Type(i32, "", "w"), i32, TYPE)
-f64 ::= $TYPEDEF($Type(f64, "d_", "d"), f64, TYPE)
+void ::= $TYPEDEF($Type(
+    void, // id
+    "", // prefix
+    "", // nativeType
+    VALUE_VOID, // typeName
+    $NIL() // constantType
+), void, TYPE)
 
-// str ::= $TYPEDEF($Type(str, "", "l"), str, TYPE)
+i32 ::= $TYPEDEF($Type(
+    i32, // id
+    "", // prefix
+    "w", // nativeType
+    VALUE_I32, // typeName
+    int // constantType
+), i32, TYPE)
+
+f64 ::= $TYPEDEF($Type(
+    f64, // id
+    "d_", // prefix
+    "d", // nativeType
+    VALUE_F64, // typeName
+    float // constantType
+), f64, TYPE)
+
+str ::= $TYPEDEF($Type(
+    str, // id
+    "", // prefix
+    "l", // nativeType
+    VALUE_STR, // typeName
+    string // constantType
+), str, TYPE)
 
 TYPE2TYPENAME ::= $LAMBDA(x, {
-    t ::= $UNTYPE(x).nativeType
-    $IF(t == "w", VALUE_I32,
-    $IF(t == "d", VALUE_F64, {})) 
+    $UNTYPE(x).typeName
 })
 
 TYPE2NATIVE ::= $LAMBDA(x, {
-    t ::= $UNTYPE(x).nativeType
-    $IF(t == "w", int,
-    $IF(t == "d", float, {})) 
+    $UNTYPE(x).constantType
 })
 
 TYPE2LANGTYPE ::= $LAMBDA(x, {
-    t ::= $UNTYPE(x).nativeType
-    $IF(t == "w", "i32",
-    $IF(t == "d", "f64", {})) 
+    $UNTYPE(x).id
 })

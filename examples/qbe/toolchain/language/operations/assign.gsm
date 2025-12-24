@@ -28,3 +28,22 @@ symbol <- VALUE_F64 ::= {
     value ::= $UNTYPE($2)
     $EXPORT($1, $TYPEDEF(value, VALUE_F64))
 }
+
+// string:
+symbol <- string ::= {
+    index ::= $DECLARE_STRING($2)
+    addr ::= $CAT("$str", index)
+
+    $WRITE("\t%")
+    $WRITE($1)
+    $WRITE(" =l copy ")
+    $WRITE(addr)
+    $WRITE("\n")
+    
+    $EXPORT($1, $TYPEDEF($Value(str, $CAT("%", $1)), VALUE_STR))
+}
+
+symbol <- VALUE_STR ::= {
+    value ::= $UNTYPE($2)
+    $EXPORT($1, $TYPEDEF(value, VALUE_STR))
+}
