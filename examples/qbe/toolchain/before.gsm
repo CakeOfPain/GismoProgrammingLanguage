@@ -26,6 +26,8 @@ float / int ::= $DIV($1, $2)
 string + string ::= $CAT($1, $2)
 string + int ::= $CAT($1, $2)
 int + string ::= $CAT($1, $2)
+string + symbol ::= $CAT($1, $QUOTE($2))
+symbol + string ::= $CAT($QUOTE($1), $2)
 int == int ::= {
     $EQUALS($1, $2)
 }
@@ -296,6 +298,7 @@ $DECLARE_STRING ::= $LAMBDA(x, {
     index
   })
 })
+
 
 $LOAD("toolchain/types.gsm")
 $LOAD("toolchain/language/main.gsm")

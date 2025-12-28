@@ -1,14 +1,15 @@
+puts(message: str)
 
-puts(message: str): void
-
-add(a: i32, b: i32): i32 {
-    a + b
+add(a: ref(i32), b: ref(i32)): i32 {
+    a <- i32(30)
+    deref(a) + deref(b)
 }
 
 main(): i32 {
-    c <- add(1,2)
+    a = stack(i32(10)) // ref(i32)
+    b = stack(i32(20)) // ref(i32)
+    c = stack(add(a, b))
+    c <- add(c, b)
 
-    puts("Hello world!")
-
-    c
+    deref(c)
 }

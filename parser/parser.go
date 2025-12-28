@@ -69,7 +69,9 @@ func parseExpression(r *TokenReader, parentPrecedence int) *SyntaxNode {
     // Handle unary operators
     if isUnaryOperator(r) {
         operator := r.Next()
-        operand := parseLiteral(r)
+        
+        operand := parseExpression(r, tokenizer.UnaryPrecedence)
+        
         if operand == nil {
             left = NewValueNode(operator)
         } else {

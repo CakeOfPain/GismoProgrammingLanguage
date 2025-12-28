@@ -1,9 +1,102 @@
-
+// BINARY:
 // int:
+
+VALUE_I8 - int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w sub ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(i8, addr), VALUE_I8)
+}
+
+int - VALUE_I8 ::= {
+    value ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w sub ")
+    $WRITE($1)
+    $WRITE(", ")
+    $WRITE(value.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(i8, addr), VALUE_I8)
+}
+
+VALUE_I8 - VALUE_I8 ::= {
+    value_a ::= $UNTYPE($1)
+    value_b ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w sub ")
+    $WRITE(value_a.addr)
+    $WRITE(", ")
+    $WRITE(value_b.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(i8, addr), VALUE_I8)
+}
+
+
+VALUE_I16 - int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w sub ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(i16, addr), VALUE_I16)
+}
+
+int - VALUE_I16 ::= {
+    value ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w sub ")
+    $WRITE($1)
+    $WRITE(", ")
+    $WRITE(value.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(i16, addr), VALUE_I16)
+}
+
+VALUE_I16 - VALUE_I16 ::= {
+    value_a ::= $UNTYPE($1)
+    value_b ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w sub ")
+    $WRITE(value_a.addr)
+    $WRITE(", ")
+    $WRITE(value_b.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(i16, addr), VALUE_I16)
+}
 
 VALUE_I32 - int ::= {
     value ::= $UNTYPE($1)
-    addr ::= $CAT("%t", $IOTA())
+    addr ::= $NEWADDR()
 
     $WRITE("\t")
     $WRITE(addr)
@@ -18,7 +111,7 @@ VALUE_I32 - int ::= {
 
 int - VALUE_I32 ::= {
     value ::= $UNTYPE($2)
-    addr ::= $CAT("%t", $IOTA())
+    addr ::= $NEWADDR()
 
     $WRITE("\t")
     $WRITE(addr)
@@ -34,7 +127,7 @@ int - VALUE_I32 ::= {
 VALUE_I32 - VALUE_I32 ::= {
     value_a ::= $UNTYPE($1)
     value_b ::= $UNTYPE($2)
-    addr ::= $CAT("%t", $IOTA())
+    addr ::= $NEWADDR()
 
     $WRITE("\t")
     $WRITE(addr)
@@ -47,11 +140,58 @@ VALUE_I32 - VALUE_I32 ::= {
     $TYPEDEF($Value(i32, addr), VALUE_I32)
 }
 
+
+VALUE_I64 - int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l sub ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(i64, addr), VALUE_I64)
+}
+
+int - VALUE_I64 ::= {
+    value ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l sub ")
+    $WRITE($1)
+    $WRITE(", ")
+    $WRITE(value.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(i64, addr), VALUE_I64)
+}
+
+VALUE_I64 - VALUE_I64 ::= {
+    value_a ::= $UNTYPE($1)
+    value_b ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l sub ")
+    $WRITE(value_a.addr)
+    $WRITE(", ")
+    $WRITE(value_b.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(i64, addr), VALUE_I64)
+}
+
 // float:
 
 VALUE_F64 - float ::= {
     value ::= $UNTYPE($1)
-    addr ::= $CAT("%t", $IOTA())
+    addr ::= $NEWADDR()
 
     $WRITE("\t")
     $WRITE(addr)
@@ -66,7 +206,7 @@ VALUE_F64 - float ::= {
 
 float - VALUE_F64 ::= {
     value ::= $UNTYPE($2)
-    addr ::= $CAT("%t", $IOTA())
+    addr ::= $NEWADDR()
 
     $WRITE("\t")
     $WRITE(addr)
@@ -81,7 +221,7 @@ float - VALUE_F64 ::= {
 
 VALUE_F64 - int ::= {
     value ::= $UNTYPE($1)
-    addr ::= $CAT("%t", $IOTA())
+    addr ::= $NEWADDR()
 
     $WRITE("\t")
     $WRITE(addr)
@@ -96,7 +236,7 @@ VALUE_F64 - int ::= {
 
 int - VALUE_F64 ::= {
     value ::= $UNTYPE($2)
-    addr ::= $CAT("%t", $IOTA())
+    addr ::= $NEWADDR()
 
     $WRITE("\t")
     $WRITE(addr)
@@ -112,7 +252,7 @@ int - VALUE_F64 ::= {
 VALUE_F64 - VALUE_F64 ::= {
     value_a ::= $UNTYPE($1)
     value_b ::= $UNTYPE($2)
-    addr ::= $CAT("%t", $IOTA())
+    addr ::= $NEWADDR()
 
     $WRITE("\t")
     $WRITE(addr)
@@ -120,6 +260,76 @@ VALUE_F64 - VALUE_F64 ::= {
     $WRITE(value_a.addr)
     $WRITE(", ")
     $WRITE(value_b.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(f64, addr), VALUE_F64)
+}
+
+// UNARY:
+
+// int:
+-VALUE_I8 ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w sub 0, ")
+    $WRITE(value.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(i8, addr), VALUE_I8)
+}
+
+-VALUE_I16 ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w sub 0, ")
+    $WRITE(value.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(i16, addr), VALUE_I15)
+}
+
+-VALUE_I32 ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w sub 0, ")
+    $WRITE(value.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(i32, addr), VALUE_I32)
+}
+
+-VALUE_I64 ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l sub 0, ")
+    $WRITE(value.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(i64, addr), VALUE_I64)
+}
+
+// float:
+
+-VALUE_F64 ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =d sub d_0, ")
+    $WRITE(value.addr)
     $WRITE("\n")
 
     $TYPEDEF($Value(f64, addr), VALUE_F64)

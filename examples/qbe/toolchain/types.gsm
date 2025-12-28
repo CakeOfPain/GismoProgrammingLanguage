@@ -3,8 +3,10 @@ $Type ::= $struct(
     id,
     prefix,
     nativeType,
+    nativeMemoryType,
     typeName,
-    constantType
+    constantType,
+    metaData
 )
 
 $Function ::= $struct(

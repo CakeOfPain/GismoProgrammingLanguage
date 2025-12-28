@@ -3,33 +3,89 @@ void ::= $TYPEDEF($Type(
     void, // id
     "", // prefix
     "", // nativeType
+    "", // nativeMemoryType
     VALUE_VOID, // typeName
-    $NIL() // constantType
+    $NIL(), // constantType
+    $NIL() // metaData
 ), void, TYPE)
+
+i8 ::= $TYPEDEF($Type(
+    i8, // id
+    "", // prefix
+    "w", // nativeType
+    "b", // nativeMemoryType
+    VALUE_I8, // typeName
+    int, // constantType
+    $NIL() // metaData
+), i8, TYPE)
+
+i16 ::= $TYPEDEF($Type(
+    i16, // id
+    "", // prefix
+    "w", // nativeType
+    "h", // nativeMemoryType
+    VALUE_I16, // typeName
+    int, // constantType
+    $NIL() // metaData
+), i16, TYPE)
 
 i32 ::= $TYPEDEF($Type(
     i32, // id
     "", // prefix
     "w", // nativeType
+    "w", // nativeMemoryType
     VALUE_I32, // typeName
-    int // constantType
+    int, // constantType
+    $NIL() // metaData
 ), i32, TYPE)
+
+i64 ::= $TYPEDEF($Type(
+    i64, // id
+    "", // prefix
+    "l", // nativeType
+    "l", // nativeMemoryType
+    VALUE_I64, // typeName
+    int, // constantType
+    $NIL() // metaData
+), i64, TYPE)
 
 f64 ::= $TYPEDEF($Type(
     f64, // id
     "d_", // prefix
     "d", // nativeType
+    "d", // nativeMemoryType
     VALUE_F64, // typeName
-    float // constantType
+    float, // constantType
+    $NIL() // metaData
 ), f64, TYPE)
 
 str ::= $TYPEDEF($Type(
     str, // id
     "", // prefix
     "l", // nativeType
+    "l", // nativeMemoryType
     VALUE_STR, // typeName
-    string // constantType
+    string, // constantType
+    $NIL() // metaData
 ), str, TYPE)
+
+ref(TYPE) ::= {
+    refTypeRaw ::= $2
+    refType ::= $UNTYPE(refTypeRaw)
+    typeId ::= $SYMCAT(ref_, refType.id)
+
+    template ::= $QUOTE($TYPEDEF($Type(
+        typeId, // id
+        "", // prefix
+        "l", // nativeType
+        "l", // nativeMemoryType
+        VALUE_REF, // typeName
+        $NIL(), // constantType
+        refTypeRaw // metaData
+    ), T, TYPE))
+
+    $EVAL($REPLACE(template, T, typeId))
+}
 
 TYPE2TYPENAME ::= $LAMBDA(x, {
     $UNTYPE(x).typeName

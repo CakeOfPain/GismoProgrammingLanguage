@@ -1,4 +1,7 @@
 
+symbol() ::= $RAISE($1, "Undefined Function")
+symbol(*) ::= $RAISE($1, "Undefined Function")
+
 // Function Calls 
 FunctionProto() ::= {
     fn_meta ::= $UNTYPE($1)
@@ -7,7 +10,7 @@ FunctionProto() ::= {
         $RAISE($$, $CAT("Argument count mismatch for function ", fn_meta.name))
     })
 
-    retAddr ::= $CAT("%t", $IOTA())
+    retAddr ::= $NEWADDR()
     retTypeStr ::= $UNTYPE(fn_meta.returnType).nativeType
 
     $WRITE("\t")
@@ -21,13 +24,8 @@ FunctionProto() ::= {
     $WRITE(fn_meta.addr)
     $WRITE("()\n")
 
-    $IF($EQUALS(retTypeStr, "w"), {
-        $TYPEDEF($Value(fn_meta.returnType, retAddr), VALUE_I32)
-    }, $IF($EQUALS(retTypeStr, "d"), {
-        $TYPEDEF($Value(fn_meta.returnType, retAddr), VALUE_F64)
-    }, {
-        $Value(fn_meta.returnType, retAddr)
-    }))
+    template ::= $QUOTE($TYPEDEF($Value(fn_meta.returnType, retAddr), X))
+    $EVAL($REPLACE(template, X, $UNTYPE(fn_meta.returnType).typeName))
 }
 
 FunctionProto(*) ::= {
@@ -56,13 +54,21 @@ FunctionProto(*) ::= {
                 $CAT($UNTYPE(fn_meta_arg.type).nativeType, $CAT(" ", given_arg))
             })
         }, $IF(isCorrectType, {
+
+            // Check Pointer type
+            $IF($EQUALS(expected_type, VALUE_REF), {
+                $IF($EQUALS($UNTYPE(fn_meta_arg.type).id, $UNTYPE($UNTYPE(given_arg).type).id), {}, {
+                    $RAISE($$, "Type Mismatch: Function expects " + ($UNTYPE(fn_meta_arg.type).id) + " for argument " + (fn_meta_arg.name) + ", not " + ($UNTYPE($UNTYPE(given_arg).type).id))
+                })
+            }, {})
+
             $CAT($UNTYPE(fn_meta_arg.type).nativeType, $CAT(" ", $UNTYPE(given_arg).addr))
         }, {
-            $RAISE($$, $CAT("Type Mismatch: Function expects ", $CAT($UNTYPE(fn_meta_arg.type).id, $CAT(" for argument ", fn_meta_arg.name))))
+            $RAISE($$, "Type Mismatch: Function expects " + ($UNTYPE(fn_meta_arg.type).id) + " for argument " + (fn_meta_arg.name))
         }))
     })
 
-    retAddr ::= $CAT("%t", $IOTA())
+    retAddr ::= $NEWADDR()
     retTypeStr ::= $UNTYPE(fn_meta.returnType).nativeType
 
 
@@ -79,11 +85,6 @@ FunctionProto(*) ::= {
     $WRITE(formatted_args join ", ")
     $WRITE(")\n")
 
-    $IF($EQUALS(retTypeStr, "w"), {
-        $TYPEDEF($Value(fn_meta.returnType, retAddr), VALUE_I32)
-    }, $IF($EQUALS(retTypeStr, "d"), {
-        $TYPEDEF($Value(fn_meta.returnType, retAddr), VALUE_F64)
-    }, {
-        $Value(fn_meta.returnType, retAddr)
-    }))
+    template ::= $QUOTE($TYPEDEF($Value(fn_meta.returnType, retAddr), X))
+    $EVAL($REPLACE(template, X, $UNTYPE(fn_meta.returnType).typeName))
 }

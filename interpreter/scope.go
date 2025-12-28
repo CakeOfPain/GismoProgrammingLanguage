@@ -178,7 +178,7 @@ func (currentScope *Scope) applyUnaryMacro(macroName string, rawLeft Value, oper
         }
     }
     
-    RuntimeError(operatorToken, "No match for unary macro '%s %s'", macroName, leftVal.GetTypeString(), leftVal.GetTypeString())
+    RuntimeError(operatorToken, "No match for unary macro '%s %s'", macroName, leftVal.GetTypeString())
 
     return nil
 }

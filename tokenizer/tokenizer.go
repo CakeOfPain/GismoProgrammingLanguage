@@ -79,6 +79,7 @@ var binaryPrecedences = []struct {
 const FunctionCallPrecedence = 16
 const CurlyCallPrecedence = 14
 const identifierPrecedence = 4
+const UnaryPrecedence = 15 
 
 // Tokenize converts the input code into a list of tokens.
 func Tokenize(code string, source string) []*Token {

@@ -1,0 +1,168 @@
+
+// POINTERS:
+deref(int) ::= $RAISE($$, "Cannot dereference int constants")
+deref(float) ::= $RAISE($$, "Cannot dereference float constants")
+deref(string) ::= $RAISE($$, "Cannot dereference string constants")
+deref(VALUE_I8) ::= $RAISE($$, "Cannot dereference i8 values")
+deref(VALUE_I16) ::= $RAISE($$, "Cannot dereference i16 values")
+deref(VALUE_I32) ::= $RAISE($$, "Cannot dereference i32 values")
+deref(VALUE_I64) ::= $RAISE($$, "Cannot dereference i64 values")
+deref(VALUE_F64) ::= $RAISE($$, "Cannot dereference f64 values")
+
+deref(VALUE_REF) ::= {
+    value ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+    subTypeRaw ::= $UNTYPE(value.type).metaData
+    subType ::= $UNTYPE(subTypeRaw)
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =")
+    $WRITE(subType.nativeType)
+    $WRITE(" load")
+    $WRITE(subType.nativeMemoryType)
+    $WRITE(" ")
+    $WRITE(value.addr)
+    $WRITE("\n")
+
+    template ::= $QUOTE($TYPEDEF($Value(subTypeRaw, addr), T))
+    $EVAL($REPLACE(template, T, subType.typeName))
+}
+
+stack(int) ::= stack(i64($2))
+stack(float) ::= stack(f64($2))
+stack(string) ::= $RAISE($$, "Cannot allocate strings on the stack")
+
+stack(VALUE_REF) ::= {
+    value ::= $UNTYPE($2)
+    type ::= $UNTYPE(value.type)
+    addr ::= $NEWADDR()
+
+    // allocate memory
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l alloc8 8\n")
+
+    // store into memory
+    $WRITE("\tstore")
+    $WRITE(type.nativeMemoryType)
+    $WRITE(" ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE(addr)
+    $WRITE("\n")
+    
+    $TYPEDEF($Value(ref(value.type), addr), VALUE_REF)
+}
+
+stack(VALUE_I8) ::= {
+    value ::= $UNTYPE($2)
+    type ::= $UNTYPE(value.type)
+    addr ::= $NEWADDR()
+
+    // allocate memory
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l alloc4 1\n")
+
+    // store into memory
+    $WRITE("\tstore")
+    $WRITE(type.nativeMemoryType)
+    $WRITE(" ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE(addr)
+    $WRITE("\n")
+    
+    $TYPEDEF($Value(ref(i8), addr), VALUE_REF)
+}
+
+stack(VALUE_I16) ::= {
+    value ::= $UNTYPE($2)
+    type ::= $UNTYPE(value.type)
+    addr ::= $NEWADDR()
+
+    // allocate memory
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l alloc4 2\n")
+
+    // store into memory
+    $WRITE("\tstore")
+    $WRITE(type.nativeMemoryType)
+    $WRITE(" ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE(addr)
+    $WRITE("\n")
+    
+    $TYPEDEF($Value(ref(i16), addr), VALUE_REF)
+}
+
+
+stack(VALUE_I32) ::= {
+    value ::= $UNTYPE($2)
+    type ::= $UNTYPE(value.type)
+    addr ::= $NEWADDR()
+
+    // allocate memory
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l alloc4 4\n")
+
+    // store into memory
+    $WRITE("\tstore")
+    $WRITE(type.nativeMemoryType)
+    $WRITE(" ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE(addr)
+    $WRITE("\n")
+    
+    $TYPEDEF($Value(ref(i32), addr), VALUE_REF)
+}
+
+stack(VALUE_I64) ::= {
+    value ::= $UNTYPE($2)
+    type ::= $UNTYPE(value.type)
+    addr ::= $NEWADDR()
+
+    // allocate memory
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l alloc16 8\n")
+
+    // store into memory
+    $WRITE("\tstore")
+    $WRITE(type.nativeMemoryType)
+    $WRITE(" ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE(addr)
+    $WRITE("\n")
+    
+    $TYPEDEF($Value(ref(i64), addr), VALUE_REF)
+}
+
+
+stack(VALUE_F64) ::= {
+    value ::= $UNTYPE($2)
+    type ::= $UNTYPE(value.type)
+    addr ::= $NEWADDR()
+
+    // allocate memory
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l alloc16 8\n")
+
+    // store into memory
+    $WRITE("\tstore")
+    $WRITE(type.nativeMemoryType)
+    $WRITE(" ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE(addr)
+    $WRITE("\n")
+    
+    $TYPEDEF($Value(ref(f64), addr), VALUE_REF)
+}

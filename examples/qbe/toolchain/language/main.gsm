@@ -1,17 +1,25 @@
+// Keywords
+$KEYWORD(ref)
+$KEYWORD(deref)
+$KEYWORD(stack)
+$KEYWORD($NEWADDR)
+
+
+$NEWADDR() ::= $CAT("%t", $IOTA())
 
 // Builtin Types
 $LOAD("toolchain/language/types.gsm")
 
 // Global Contants
-symbol <- int ::= {
+symbol = int ::= {
     $EXPORT($1, $2)
 }
 
-symbol <- string ::= {
+symbol = string ::= {
     $EXPORT($1, $2)
 }
 
-symbol <- float ::= {
+symbol = float ::= {
     $EXPORT($1, $2)
 }
 
@@ -96,7 +104,6 @@ FunctionProto{*} ::= {
         $WRITE("export function "), 
         $WRITE("function ")
     )
-    
 
     $WRITE($UNTYPE(functionProto.returnType).nativeType)
     $WRITE(" $")

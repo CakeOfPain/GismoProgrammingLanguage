@@ -1,21 +1,37 @@
 
 // int:
-symbol <- int ::= {
+symbol = int ::= {
     $WRITE("\t%")
     $WRITE($1)
-    $WRITE(" =w copy ")
+    $WRITE(" =l copy ")
     $WRITE($2)
     $WRITE("\n")
-    $EXPORT($1, $TYPEDEF($Value(i32, $CAT("%", $1)), VALUE_I32))
+    $EXPORT($1, $TYPEDEF($Value(i64, $CAT("%", $1)), VALUE_I64))
 }
 
-symbol <- VALUE_I32 ::= {
+symbol = VALUE_I8 ::= {
+    value ::= $UNTYPE($2)
+    $EXPORT($1, $TYPEDEF(value, VALUE_I8))
+}
+
+symbol = VALUE_I16 ::= {
+    value ::= $UNTYPE($2)
+    $EXPORT($1, $TYPEDEF(value, VALUE_I16))
+}
+
+symbol = VALUE_I32 ::= {
     value ::= $UNTYPE($2)
     $EXPORT($1, $TYPEDEF(value, VALUE_I32))
 }
 
+symbol = VALUE_I64 ::= {
+    value ::= $UNTYPE($2)
+    $EXPORT($1, $TYPEDEF(value, VALUE_I64))
+}
+
+
 // float:
-symbol <- float ::= {
+symbol = float ::= {
     $WRITE("\t%")
     $WRITE($1)
     $WRITE(" =d copy d_")
@@ -24,13 +40,13 @@ symbol <- float ::= {
     $EXPORT($1, $TYPEDEF($Value(f64, $CAT("%", $1)), VALUE_F64))
 }
 
-symbol <- VALUE_F64 ::= {
+symbol = VALUE_F64 ::= {
     value ::= $UNTYPE($2)
     $EXPORT($1, $TYPEDEF(value, VALUE_F64))
 }
 
 // string:
-symbol <- string ::= {
+symbol = string ::= {
     index ::= $DECLARE_STRING($2)
     addr ::= $CAT("$str", index)
 
@@ -43,7 +59,47 @@ symbol <- string ::= {
     $EXPORT($1, $TYPEDEF($Value(str, $CAT("%", $1)), VALUE_STR))
 }
 
-symbol <- VALUE_STR ::= {
+symbol = VALUE_STR ::= {
     value ::= $UNTYPE($2)
     $EXPORT($1, $TYPEDEF(value, VALUE_STR))
 }
+
+symbol = VALUE_REF ::= {
+    $EXPORT($1, $2)
+}
+
+// Reference
+
+VALUE_REF $STORE2MEM (*) ::= {
+    ref       ::= $UNTYPE($1)
+    value     ::= $UNTYPE($2)
+    type      ::= $UNTYPE(value.type)
+    metatype  ::= $UNTYPE($UNTYPE(ref.type).metaData)
+    // TODO: Saidly this is not going to give good errors
+    $IF($EQUALS(type.id, metatype.id), {
+        $WRITE("\t")
+        $WRITE("store")
+        $WRITE(metatype.nativeMemoryType)
+        $WRITE(" ")
+        $WRITE(value.addr)
+        $WRITE(", ")
+        $WRITE(ref.addr)
+        $WRITE("\n")
+
+        $NIL()
+    }, { // ELSE:
+        "Cannot store value into reference, type missmatch"
+    })
+}
+
+string $ASSERT_STORE2MEM (*) ::= $RAISE($2, $1)
+Nil $ASSERT_STORE2MEM (*) ::= $NIL()
+
+VALUE_REF <- int ::= ($1 $STORE2MEM i64($2)) $ASSERT_STORE2MEM $$
+VALUE_REF <- float ::= ($1 $STORE2MEM f64($2)) $ASSERT_STORE2MEM $$
+VALUE_REF <- VALUE_I8  ::= ($1 $STORE2MEM $2) $ASSERT_STORE2MEM $$
+VALUE_REF <- VALUE_I16 ::= ($1 $STORE2MEM $2) $ASSERT_STORE2MEM $$
+VALUE_REF <- VALUE_I32 ::= ($1 $STORE2MEM $2) $ASSERT_STORE2MEM $$
+VALUE_REF <- VALUE_I64 ::= ($1 $STORE2MEM $2) $ASSERT_STORE2MEM $$
+VALUE_REF <- VALUE_F64 ::= ($1 $STORE2MEM $2) $ASSERT_STORE2MEM $$
+VALUE_REF <- VALUE_REF ::= ($1 $STORE2MEM $2) $ASSERT_STORE2MEM $$

@@ -86,6 +86,7 @@ func Builtins() []BuiltinFunction {
         {callback: exporter, identifier: "$EXPORT"},
         {callback: loadFile, identifier: "$LOAD"},
         {callback: printScope, identifier: "$SCOPE"},
+        {callback: catSym, identifier: "$SYMCAT"},
     }
 }
 
@@ -836,4 +837,22 @@ func convInt(args Value, scope *Scope) Value {
     }
 
     return &Nil{}
+}
+
+func catSym(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
+    left := interpretExpression(argsList[0], scope)
+    right := interpretExpression(argsList[1], scope)
+
+    new_symbol := left.String() + right.String()
+
+    return &Symbol{
+        Value: new_symbol,
+        BaseValue: BaseValue{
+            Token: left.GetToken(),
+        },
+    }
 }
