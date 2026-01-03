@@ -6,7 +6,8 @@ $Type ::= $struct(
     nativeMemoryType,
     typeName,
     constantType,
-    metaData
+    metaData,
+    memory_size
 )
 
 $Function ::= $struct(

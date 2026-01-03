@@ -167,4 +167,163 @@ stack(VALUE_F64) ::= {
     $TYPEDEF($Value(ref(f64), addr), VALUE_REF, VALUE_REF_F64)
 }
 
-VALUE_REF(int) ::= 
+TYPE * int ::= $1 * i64($2)
+TYPE * VALUE_I8 ::= $1 * i32($2)
+TYPE * VALUE_I16 ::= $1 * i32($2)
+TYPE * VALUE_I32 ::= {
+    memory_size ::= $UNTYPE($1).memory_size * $2
+    $TYPEDEF($CONS($1, $UNTYPE(memory_size)), TYPE_SCALAR_I32)
+}
+TYPE * VALUE_I64 ::= {
+    memory_size ::= $UNTYPE($1).memory_size * $2
+    $TYPEDEF($CONS($1, $UNTYPE(memory_size)), TYPE_SCALAR_I64)
+}
+
+stack(TYPE_SCALAR_I32) ::= {
+    scalar ::= $UNTYPE($2)
+    type ::= $CAR(scalar)
+    value ::= $CDR(scalar)
+    addr ::= $NEWADDR()
+    alignment ::= TYPE2ALIGNMENT(type)
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l alloc")
+    $WRITE(alignment)
+    $WRITE(" ")
+    $WRITE(value.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(ref(type), addr), VALUE_REF)
+}
+
+stack(TYPE_SCALAR_I64) ::= {
+    scalar ::= $UNTYPE($2)
+    type ::= $CAR(scalar)
+    value ::= $CDR(scalar)
+    addr ::= $NEWADDR()
+    alignment ::= TYPE2ALIGNMENT(type)
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l alloc")
+    $WRITE(alignment)
+    $WRITE(" ")
+    $WRITE(value.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(ref(type), addr), VALUE_REF)
+}
+
+stack(TYPE) ::= {
+    rawType ::= $2
+    type ::= $UNTYPE(rawType)
+    addr ::= $NEWADDR()
+    alignment ::= TYPE2ALIGNMENT(rawType)
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l alloc")
+    $WRITE(alignment)
+    $WRITE(" ")
+    $WRITE(type.memory_size)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(ref(rawType), addr), VALUE_REF)
+}
+
+VALUE_REF(int) ::= {
+    value_ref ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+    type ::= $UNTYPE(value_ref.type)
+
+    // Calculate the new pointer address
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l add ")
+    $WRITE(value_ref.addr)
+    $WRITE(", ")
+    $WRITE($2 * type.memory_size)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(value_ref.type, addr), VALUE_REF)
+}
+
+VALUE_REF(VALUE_I8) ::= {
+    value_ref ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+    type ::= $UNTYPE(value_ref.type)
+
+    offset ::= $UNTYPE(i64($2 * type.memory_size))
+
+    // Calculate the new pointer address
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l add ")
+    $WRITE(value_ref.addr)
+    $WRITE(", ")
+    $WRITE(offset.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(value_ref.type, addr), VALUE_REF)
+}
+
+
+VALUE_REF(VALUE_I16) ::= {
+    value_ref ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+    type ::= $UNTYPE(value_ref.type)
+
+    offset ::= $UNTYPE(i64($2 * type.memory_size))
+
+    // Calculate the new pointer address
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l add ")
+    $WRITE(value_ref.addr)
+    $WRITE(", ")
+    $WRITE(offset.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(value_ref.type, addr), VALUE_REF)
+}
+
+
+VALUE_REF(VALUE_I32) ::= {
+    value_ref ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+    type ::= $UNTYPE(value_ref.type)
+
+    offset ::= $UNTYPE(i64($2 * type.memory_size))
+
+    // Calculate the new pointer address
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l add ")
+    $WRITE(value_ref.addr)
+    $WRITE(", ")
+    $WRITE(offset.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(value_ref.type, addr), VALUE_REF)
+}
+
+
+VALUE_REF(VALUE_I64) ::= {
+    value_ref ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+    type ::= $UNTYPE(value_ref.type)
+
+    offset ::= $UNTYPE(i64($2 * type.memory_size))
+
+    // Calculate the new pointer address
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l add ")
+    $WRITE(value_ref.addr)
+    $WRITE(", ")
+    $WRITE(offset.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(value_ref.type, addr), VALUE_REF)
+}

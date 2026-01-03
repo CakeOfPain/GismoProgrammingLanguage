@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gismolang.org/compiler/config"
 	"gismolang.org/compiler/parser"
@@ -87,6 +88,7 @@ func Builtins() []BuiltinFunction {
         {callback: loadFile, identifier: "$LOAD"},
         {callback: printScope, identifier: "$SCOPE"},
         {callback: catSym, identifier: "$SYMCAT"},
+        {callback: suggester, identifier: "$SUGGEST"},
     }
 }
 
@@ -855,4 +857,81 @@ func catSym(args Value, scope *Scope) Value {
             Token: left.GetToken(),
         },
     }
+}
+
+func suggester(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    if len(argsList) < 1 {
+        return &Nil{}
+    }
+
+    // Evaluate the argument to inspect
+    value := interpretExpression(argsList[0], scope)
+    
+    // Using the helper from scope.go (same package)
+    types := gatherTypeStrings(value)
+
+    fmt.Printf("Possible macros:\n")
+
+    seen := make(map[string]bool)
+    current := scope
+
+    for current != nil {
+        for key := range current.definitionsMap {
+            parts := strings.Split(key, " ")
+            
+            // Check definitions
+            // Unary:  NAME TYPE        -> len=2
+            // Binary: NAME LEFT RIGHT  -> len=3
+
+            if len(parts) == 2 {
+                // Unary: Check if parts[1] (Operand Type) matches
+                opName := parts[0]
+                opType := parts[1]
+                
+                match := false
+                for _, t := range types {
+                    if opType == t {
+                        match = true
+                        break
+                    }
+                }
+                
+                if match && !seen[key] {
+                    // Format: * a
+                    fmt.Printf(" - %s %s\n", opName, opType)
+                    seen[key] = true
+                }
+
+            } else if len(parts) == 3 {
+                // Binary: Check if parts[1] (Left Type) or parts[2] (Right Type) matches
+                opName := parts[0]
+                leftType := parts[1]
+                rightType := parts[2]
+                
+                match := false
+                for _, t := range types {
+                    if leftType == t {
+                        match = true
+                        break
+                    }
+                }
+
+                if match && !seen[key] {
+                    // Format: a * b
+                    if opName == "@call" {
+                        fmt.Printf(" - %s(%s)\n", leftType, rightType)
+                    } else if opName == "@curlyCall" {
+                        fmt.Printf(" - %s { %s }\n", leftType, rightType)
+                    } else {
+                        fmt.Printf(" - %s %s %s\n", leftType, opName, rightType)
+                    }
+                    seen[key] = true
+                }
+            }
+        }
+        current = current.parentScope
+    }
+
+    return &Nil{}
 }

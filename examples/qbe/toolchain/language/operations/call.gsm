@@ -50,9 +50,11 @@ FunctionProto(*) ::= {
             $IF($TYPEOF(given_arg, string), {
                 index ::= $DECLARE_STRING(given_arg)
                 $CAT("l $str", index)
+            }, $IF($TYPEOF(given_arg, float), {
+                $CAT($UNTYPE(fn_meta_arg.type).nativeType, $CAT(" d_", given_arg))
             }, { // ELSE:
                 $CAT($UNTYPE(fn_meta_arg.type).nativeType, $CAT(" ", given_arg))
-            })
+            }))
         }, $IF(isCorrectType, {
 
             // Check Pointer type

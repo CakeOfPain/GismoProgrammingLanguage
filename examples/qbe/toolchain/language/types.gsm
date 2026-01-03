@@ -6,7 +6,8 @@ void ::= $TYPEDEF($Type(
     "", // nativeMemoryType
     VALUE_VOID, // typeName
     $NIL(), // constantType
-    $NIL() // metaData
+    $NIL(), // metaData
+    0 // memory_size 
 ), void, TYPE)
 
 i8 ::= $TYPEDEF($Type(
@@ -16,7 +17,8 @@ i8 ::= $TYPEDEF($Type(
     "b", // nativeMemoryType
     VALUE_I8, // typeName
     int, // constantType
-    $NIL() // metaData
+    $NIL(), // metaData
+    1 // memory_size 
 ), i8, TYPE)
 
 i16 ::= $TYPEDEF($Type(
@@ -26,7 +28,8 @@ i16 ::= $TYPEDEF($Type(
     "h", // nativeMemoryType
     VALUE_I16, // typeName
     int, // constantType
-    $NIL() // metaData
+    $NIL(), // metaData
+    2 // memory_size 
 ), i16, TYPE)
 
 i32 ::= $TYPEDEF($Type(
@@ -36,7 +39,8 @@ i32 ::= $TYPEDEF($Type(
     "w", // nativeMemoryType
     VALUE_I32, // typeName
     int, // constantType
-    $NIL() // metaData
+    $NIL(), // metaData
+    4 // memory_size 
 ), i32, TYPE)
 
 i64 ::= $TYPEDEF($Type(
@@ -46,7 +50,8 @@ i64 ::= $TYPEDEF($Type(
     "l", // nativeMemoryType
     VALUE_I64, // typeName
     int, // constantType
-    $NIL() // metaData
+    $NIL(), // metaData
+    8 // memory_size 
 ), i64, TYPE)
 
 f64 ::= $TYPEDEF($Type(
@@ -56,7 +61,8 @@ f64 ::= $TYPEDEF($Type(
     "d", // nativeMemoryType
     VALUE_F64, // typeName
     float, // constantType
-    $NIL() // metaData
+    $NIL(), // metaData
+    8 // memory_size 
 ), f64, TYPE)
 
 str ::= $TYPEDEF($Type(
@@ -66,7 +72,8 @@ str ::= $TYPEDEF($Type(
     "l", // nativeMemoryType
     VALUE_STR, // typeName
     string, // constantType
-    $NIL() // metaData
+    $NIL(), // metaData
+    8 // memory_size 
 ), str, TYPE)
 
 ref(TYPE) ::= {
@@ -81,7 +88,8 @@ ref(TYPE) ::= {
         "l", // nativeMemoryType
         VALUE_REF, // typeName
         $NIL(), // constantType
-        refTypeRaw // metaData
+        refTypeRaw, // metaData
+        8 // memory_size 
     ), T, TYPE))
 
     $EVAL($REPLACE(template, T, typeId))
@@ -97,4 +105,8 @@ TYPE2NATIVE ::= $LAMBDA(x, {
 
 TYPE2LANGTYPE ::= $LAMBDA(x, {
     $UNTYPE(x).id
+})
+
+TYPE2ALIGNMENT ::= $LAMBDA(x, {
+    $IF($UNTYPE(x).memory_size < 4, 4, $UNTYPE(x).memory_size)
 })

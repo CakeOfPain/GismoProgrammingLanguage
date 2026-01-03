@@ -250,3 +250,19 @@ f64(VALUE_I64) ::= {
 
     $TYPEDEF($Value(f64, addr), VALUE_F64)
 }
+
+str(VALUE_STR) ::= $2
+str(string) ::= {
+    index ::= $DECLARE_STRING($2)
+    str_addr ::= $CAT("$str", index)
+    addr ::= $NEWADDR()
+
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l copy ")
+    $WRITE(str_addr)
+    $WRITE("\n")
+    
+    $TYPEDEF($Value(str, addr), VALUE_STR)
+}

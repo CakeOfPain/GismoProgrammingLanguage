@@ -1,15 +1,14 @@
-puts(message: str)
 
-add(a: ref(i32), b: ref(i32)): i32 {
-    a <- i32(30)
-    deref(a) + deref(b)
-}
+
 
 main(): i32 {
-    a = stack(i32(10)) // ref(i32)
-    b = stack(i32(20)) // ref(i32)
-    c = stack(add(a, b))
-    c <- add(c, b)
+    primes = stack(i32*5)
+    primes(0) <- i32(2)
+    primes(1) <- i32(3)
+    primes(2) <- i32(5)
+    primes(3) <- i32(7)
+    primes(4) <- i32(13)
 
-    deref(c)
+    deref(primes(3))
 }
+
