@@ -266,3 +266,9 @@ str(string) ::= {
     
     $TYPEDEF($Value(str, addr), VALUE_STR)
 }
+
+bool(VALUE_BOOL) ::= $2
+
+bool(int) ::= $IF($EQUALS($2, 1), true, $IF($EQUALS($2, 0), false, {
+    $RAISE($$, $CAT("For the Boolean conversion, either 1 or 0 is required, not ", $2))
+}))

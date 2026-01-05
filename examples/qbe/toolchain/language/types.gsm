@@ -76,6 +76,17 @@ str ::= $TYPEDEF($Type(
     8 // memory_size 
 ), str, TYPE)
 
+bool ::= $TYPEDEF($Type(
+    bool, // id
+    "", // prefix
+    "w", // nativeType
+    "b", // nativeMemoryType
+    VALUE_BOOL, // typeName
+    $NIL(), // constantType
+    $NIL(), // metaData
+    1 // memory_size 
+), bool, TYPE)
+
 ref(TYPE) ::= {
     refTypeRaw ::= $2
     refType ::= $UNTYPE(refTypeRaw)

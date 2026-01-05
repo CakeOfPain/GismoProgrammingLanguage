@@ -29,6 +29,10 @@ symbol = VALUE_I64 ::= {
     $EXPORT($1, $TYPEDEF(value, VALUE_I64))
 }
 
+symbol = VALUE_BOOL ::= {
+    value ::= $UNTYPE($2)
+    $EXPORT($1, $TYPEDEF(value, VALUE_BOOL))
+}
 
 // float:
 symbol = float ::= {
@@ -105,3 +109,4 @@ VALUE_REF <- VALUE_I64 ::= ($1 $STORE2MEM $2) $ASSERT_STORE2MEM $$
 VALUE_REF <- VALUE_F64 ::= ($1 $STORE2MEM $2) $ASSERT_STORE2MEM $$
 VALUE_REF <- VALUE_REF ::= ($1 $STORE2MEM $2) $ASSERT_STORE2MEM $$
 VALUE_REF <- VALUE_STR ::= ($1 $STORE2MEM $2) $ASSERT_STORE2MEM $$
+VALUE_REF <- VALUE_BOOL ::= ($1 $STORE2MEM $2) $ASSERT_STORE2MEM $$

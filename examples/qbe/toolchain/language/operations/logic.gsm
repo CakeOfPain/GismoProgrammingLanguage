@@ -1,0 +1,32 @@
+
+VALUE_BOOL && VALUE_BOOL ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w and ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_BOOL || VALUE_BOOL ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w or ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}

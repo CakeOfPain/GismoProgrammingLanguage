@@ -8,6 +8,7 @@ deref(VALUE_I16) ::= $RAISE($$, "Cannot dereference i16 values")
 deref(VALUE_I32) ::= $RAISE($$, "Cannot dereference i32 values")
 deref(VALUE_I64) ::= $RAISE($$, "Cannot dereference i64 values")
 deref(VALUE_F64) ::= $RAISE($$, "Cannot dereference f64 values")
+deref(VALUE_BOOL) ::= $RAISE($$, "Cannot dereference boolean values")
 
 deref(VALUE_REF) ::= {
     value ::= $UNTYPE($2)
@@ -167,6 +168,28 @@ stack(VALUE_F64) ::= {
     $TYPEDEF($Value(ref(f64), addr), VALUE_REF, VALUE_REF_F64)
 }
 
+stack(VALUE_BOOL) ::= {
+    value ::= $UNTYPE($2)
+    type ::= $UNTYPE(value.type)
+    addr ::= $NEWADDR()
+
+    // allocate memory
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l alloc4 1\n")
+
+    // store into memory
+    $WRITE("\tstore")
+    $WRITE(type.nativeMemoryType)
+    $WRITE(" ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE(addr)
+    $WRITE("\n")
+    
+    $TYPEDEF($Value(ref(bool), addr), VALUE_REF, VALUE_REF_BOOL)
+}
+
 TYPE * int ::= $1 * i64($2)
 TYPE * VALUE_I8 ::= $1 * i32($2)
 TYPE * VALUE_I16 ::= $1 * i32($2)
@@ -307,7 +330,6 @@ VALUE_REF(VALUE_I32) ::= {
 
     $TYPEDEF($Value(value_ref.type, addr), VALUE_REF)
 }
-
 
 VALUE_REF(VALUE_I64) ::= {
     value_ref ::= $UNTYPE($1)

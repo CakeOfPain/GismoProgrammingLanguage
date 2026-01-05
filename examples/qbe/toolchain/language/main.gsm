@@ -2,6 +2,7 @@
 $KEYWORD(ref)
 $KEYWORD(deref)
 $KEYWORD(stack)
+$KEYWORD(match)
 $KEYWORD($NEWADDR)
 
 
@@ -9,6 +10,10 @@ $NEWADDR() ::= $CAT("%t", $IOTA())
 
 // Builtin Types
 $LOAD("toolchain/language/types.gsm")
+
+// constants
+true ::= $TYPEDEF($Value(bool, 1), VALUE_BOOL)
+false ::= $TYPEDEF($Value(bool, 0), VALUE_BOOL)
 
 // Global Contants
 symbol = int ::= {
@@ -23,5 +28,8 @@ symbol = float ::= {
     $EXPORT($1, $2)
 }
 
+symbol = VALUE_BOOL ::= {
+    $EXPORT($1, $2)
+}
 
 $LOAD("toolchain/language/functiondef.gsm")

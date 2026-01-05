@@ -1,0 +1,937 @@
+// +++ Equals +++:
+
+// Constants:
+VALUE_I8 == int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w ceqw ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+
+VALUE_I16 == int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w ceqw ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+
+VALUE_I32 == int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w ceqw ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I64 == int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w ceql ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 == int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w ceqd ")
+    $WRITE(value.addr)
+    $WRITE(", d_")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 == float ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w ceqd ")
+    $WRITE(value.addr)
+    $WRITE(", d_")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+int == VALUE_I8 ::= $2 == $1
+int == VALUE_I16 ::= $2 == $1
+int == VALUE_I32 ::= $2 == $1
+int == VALUE_I64 ::= $2 == $1
+int == VALUE_F64 ::= $2 == $1
+float == VALUE_F64 ::= $2 == $1
+
+// Values:
+
+VALUE_I8 == VALUE_I8 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w ceqw ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I16 == VALUE_I16 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w ceqw ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I32 == VALUE_I32 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w ceqw ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I64 == VALUE_I64 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w ceql ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 == VALUE_F64 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w ceqd ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_BOOL == VALUE_BOOL ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w ceqw ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+// +++ Greater than +++
+
+// Constants:
+VALUE_I8 > int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csgtw ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+
+VALUE_I16 > int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csgtw ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+
+VALUE_I32 > int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csgtw ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I64 > int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csgtl ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 > int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cgtd ")
+    $WRITE(value.addr)
+    $WRITE(", d_")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 > float ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cgtd ")
+    $WRITE(value.addr)
+    $WRITE(", d_")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+int > VALUE_I8 ::= $2 < $1
+int > VALUE_I16 ::= $2 < $1
+int > VALUE_I32 ::= $2 < $1
+int > VALUE_I64 ::= $2 < $1
+int > VALUE_F64 ::= $2 < $1
+float > VALUE_F64 ::= $2 < $1
+
+// Values:
+
+VALUE_I8 > VALUE_I8 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csgtw ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I16 > VALUE_I16 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csgtw ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I32 > VALUE_I32 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csgtw ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I64 > VALUE_I64 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csgtl ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 > VALUE_F64 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cgtd ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+// +++ Less than +++
+
+// Constants:
+VALUE_I8 < int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csltw ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+
+VALUE_I16 < int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csltw ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+
+VALUE_I32 < int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csltw ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I64 < int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csltl ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 < int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cltd ")
+    $WRITE(value.addr)
+    $WRITE(", d_")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 < float ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cltd ")
+    $WRITE(value.addr)
+    $WRITE(", d_")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+int < VALUE_I8 ::= $2 > $1
+int < VALUE_I16 ::= $2 > $1
+int < VALUE_I32 ::= $2 > $1
+int < VALUE_I64 ::= $2 > $1
+int < VALUE_F64 ::= $2 > $1
+float < VALUE_F64 ::= $2 > $1
+
+// Values:
+
+VALUE_I8 < VALUE_I8 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csltw ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I16 < VALUE_I16 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csltw ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I32 < VALUE_I32 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csltw ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I64 < VALUE_I64 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csltl ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 < VALUE_F64 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cltd ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+
+// +++ Less Equal +++
+
+// Constants:
+VALUE_I8 <= int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cslew ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+
+VALUE_I16 <= int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cslew ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+
+VALUE_I32 <= int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cslew ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I64 <= int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cslel ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 <= int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cled ")
+    $WRITE(value.addr)
+    $WRITE(", d_")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 <= float ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cled ")
+    $WRITE(value.addr)
+    $WRITE(", d_")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+int <= VALUE_I8 ::= $2 >= $1
+int <= VALUE_I16 ::= $2 >= $1
+int <= VALUE_I32 ::= $2 >= $1
+int <= VALUE_I64 ::= $2 >= $1
+int <= VALUE_F64 ::= $2 >= $1
+float <= VALUE_F64 ::= $2 >= $1
+
+// Values:
+
+VALUE_I8 <= VALUE_I8 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cslew ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I16 <= VALUE_I16 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cslew ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I32 <= VALUE_I32 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cslew ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I64 <= VALUE_I64 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cslel ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 <= VALUE_F64 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cled ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+
+// +++ Greater than +++
+
+// Constants:
+VALUE_I8 >= int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csgew ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+
+VALUE_I16 >= int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csgew ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+
+VALUE_I32 >= int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csgew ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I64 >= int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csgel ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 >= int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cged ")
+    $WRITE(value.addr)
+    $WRITE(", d_")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 >= float ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cged ")
+    $WRITE(value.addr)
+    $WRITE(", d_")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+int >= VALUE_I8 ::= $2 <= $1
+int >= VALUE_I16 ::= $2 <= $1
+int >= VALUE_I32 ::= $2 <= $1
+int >= VALUE_I64 ::= $2 <= $1
+int >= VALUE_F64 ::= $2 <= $1
+float >= VALUE_F64 ::= $2 <= $1
+
+// Values:
+
+VALUE_I8 >= VALUE_I8 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csgew ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I16 >= VALUE_I16 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csgew ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I32 >= VALUE_I32 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csgew ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I64 >= VALUE_I64 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w csgel ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 >= VALUE_F64 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cged ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
