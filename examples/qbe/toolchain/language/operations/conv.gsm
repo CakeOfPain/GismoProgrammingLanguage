@@ -272,3 +272,19 @@ bool(VALUE_BOOL) ::= $2
 bool(int) ::= $IF($EQUALS($2, 1), true, $IF($EQUALS($2, 0), false, {
     $RAISE($$, $CAT("For the Boolean conversion, either 1 or 0 is required, not ", $2))
 }))
+
+$COMP2RUN ::= $LAMBDA(x, {
+    $IF($TYPEOF(x, int), { // yes
+        i64(x)
+    }, { // no
+        $IF($TYPEOF(x, float), { // yes
+            f64(x)
+        }, { // no
+            $IF($TYPEOF(x, str), { // yes
+                str(x)
+            }, { // no
+                x
+            })
+        })
+    })
+})

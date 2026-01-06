@@ -89,12 +89,14 @@ FunctionProto{*} ::= {
     $WRITE("(")
 
     // 4. Retrieve pre-parsed arguments
-    mappedArgs ::= functionProto.arguments
+    $MAPPED_ARGS_FUNCTION ::= functionProto.arguments map $LAMBDA(arg, $Variable(arg.name, arg.type, $CAT(arg.addr, "__arg")))
 
     // Generate Signature
-    $WRITE(mappedArgs map $LAMBDA(x, $CAT($UNTYPE(x.type).nativeType, $CAT(" ", x.addr))) join ", ")
+    $WRITE(functionProto.arguments map $LAMBDA(x, $CAT($UNTYPE(x.type).nativeType, $CAT(" ", x.addr))) join ", ")
 
     $WRITE(") {\n@start\n")
+    $WRITE("\tjmp @header\n")
+    $WRITE("@body_entry\n")
 
     // Creating this macro, for later return with if(...) return statements
     $RETURN_FROM_FUNCTION ::= $LAMBDA(blame, $LAMBDA(result, {
@@ -118,19 +120,58 @@ FunctionProto{*} ::= {
         })
     }))
 
+    // Helper function for label generation & regisitration
+    $CONTINUES_OF_FUNCTION ::= $VECTOR(0)
+    $NEWCONTINUEID() ::= {
+        continueId ::= $CAT("continue", $IOTA())
+
+        $CONTINUES_OF_FUNCTION append continueId
+
+        continueId
+    }
+
     result ::= {
         // Define arguments as Values in Scope
-        $FOREACH(mappedArgs, arg,
+        $FOREACH($MAPPED_ARGS_FUNCTION, arg,
             $EVAL($REPLACE($REPLACE($QUOTE(S ::= $TYPEDEF($Value(arg.type, arg.addr), T)), S, arg.name), T, TYPE2TYPENAME(arg.type))))
 
         $LOAD("toolchain/language/infunction.gsm")
         
         {$2}
     }
-
     $WRITE("\n\tret ")
 
-    $RETURN_FROM_FUNCTION(functionProto.name)(result)
+    $IF($TYPEOF(result, continue_statement), {}, { // no
+        $RETURN_FROM_FUNCTION(functionProto.name)(result)
+    })
     
-    $WRITE("\n}\n")
+    // Generate @header
+    $WRITE("\n@header\n")
+    $FOREACH($MAPPED_ARGS_FUNCTION, arg, {
+        $WRITE("\t")
+        $WRITE(arg.addr)
+        $WRITE(" =")
+        $WRITE($UNTYPE(arg.type).nativeType)
+        $WRITE(" phi ")
+
+        // Standard arguments
+        $WRITE("@start %")
+        $WRITE(arg.name)
+
+        $FOREACH($CONTINUES_OF_FUNCTION, id, {
+            $WRITE(", ")
+            $WRITE("@")
+            $WRITE(id)
+            $WRITE(" %")
+            $WRITE(id)
+            $WRITE("_")
+            $WRITE(arg.name)
+        })
+        $WRITE("\n")
+    })
+
+    $WRITE("\n\tjmp @body_entry\n")
+
+
+    $WRITE("}\n")
 }

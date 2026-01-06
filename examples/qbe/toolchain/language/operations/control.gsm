@@ -1,5 +1,5 @@
 
-if(VALUE_BOOL) ::= $TYPEDEF($UNTYPE($2), ifstatement)
+if(VALUE_BOOL) ::= $TYPEDEF($UNTYPE($2), if_statement)
 if(VALUE_I8)   ::= $RAISE($$, "Expected a boolean as condition not i8")
 if(VALUE_I16)  ::= $RAISE($$, "Expected a boolean as condition not i16")
 if(VALUE_I32)  ::= $RAISE($$, "Expected a boolean as condition not i32")
@@ -10,7 +10,7 @@ if(VALUE_REF)  ::= $RAISE($$, "Expected a boolean as condition not a reference")
 NESTED_IF_ERROR_MESSAGE ::= "Nested ifs are not allowed in this language\n" + \
         "Try to flatten out the logic, by defining another function."
 
-ifstatement return (*) ::= {
+if_statement return (*) ::= {
     $IF($IS_VOID_FUNCTION, { // YES
         $RAISE($$, "This function should return nothing")
     }, {})
@@ -45,7 +45,7 @@ ifstatement return (*) ::= {
     $NIL()
 }
 
-(ifstatement return) ::= {
+(if_statement return) ::= {
     $IF($IS_VOID_FUNCTION, {}, { // NO
         $RAISE($$, "This function should return a value")
     })
@@ -75,7 +75,7 @@ ifstatement return (*) ::= {
     $NIL()
 }
 
-ifstatement then (*) ::= {
+if_statement then (*) ::= {
     condBool ::= $UNTYPE($1)
     labelTrue ::= $CAT("@label", $IOTA())
     labelFalse ::= $CAT("@label", $IOTA())
@@ -104,4 +104,53 @@ ifstatement then (*) ::= {
     $NIL()
 }
 
-// continue(*) ::= {} 
+continue(*) ::= {
+    // Parse Arguments
+    arguments ::= $FLATTEN($QUOTE($2), ",")
+    parsedArguments ::= arguments map $LAMBDA(x, $COMP2RUN($EVAL(x)))
+    
+    $IF($EQUALS($VECTOR_LEN(arguments), $VECTOR_LEN($MAPPED_ARGS_FUNCTION)), {}, { // no
+        $RAISE($$, "Argument count does not match for calling continue")
+    })
+
+    $FOREACH((parsedArguments zip $MAPPED_ARGS_FUNCTION), arg, {
+        given_arg ::= $CAR($QUOTE(arg))
+        expected_arg ::= $CDR($QUOTE(arg))
+
+        $IF($EQUALS($UNTYPE($UNTYPE(given_arg).type).typeName, $UNTYPE(expected_arg.type).typeName), {}, { // no
+            $RAISE($$, "Type missmatch, wrong type for calling continue")
+        })
+    })
+
+    continueId ::= $NEWCONTINUEID()
+    continueLabel ::= $CAT("@", continueId)
+
+    $WRITE("\tjmp ")
+    $WRITE(continueLabel)
+    $WRITE("\n")
+
+    $WRITE(continueLabel)
+    $WRITE("\n")
+
+    $FOREACH(parsedArguments zip $MAPPED_ARGS_FUNCTION, arg, {
+        given_arg ::= $CAR($QUOTE(arg))
+        expected_arg ::= $CDR($QUOTE(arg))
+
+        $WRITE("\t%")
+        $WRITE(continueId)
+        $WRITE("_")
+        $WRITE(expected_arg.name)
+        $WRITE(" =")
+        $WRITE($UNTYPE(expected_arg.type).nativeType)
+        $WRITE(" copy ")
+        $WRITE($UNTYPE(given_arg).addr) // ARGUMENT ADDR
+        $WRITE("\n")
+    })
+
+    $WRITE("\tjmp @header\n")
+    $WRITE("@dead")
+    $WRITE($IOTA())
+    $WRITE("\n")
+
+    $TYPEDEF(0, continue_statement)
+}

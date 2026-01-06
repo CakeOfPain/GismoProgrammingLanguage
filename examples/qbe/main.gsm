@@ -1,18 +1,36 @@
+$WRITE("
+
+# Runtime functions for printing
+# different values
+
+data $fmtPrintI32 = {b \"%d\", b 0}
+
+function $printI32(w %value) {
+@start
+    call $printf(l $fmtPrintI32, ..., w %value)
+    ret
+}
+
+")
+
+printI32(value: i32): void
 
 puts(m: str): void
 
-// finallyWhile(n: i32): void {
-//     if (n == 0) return
-//     puts("Hello World!")
-
-//     continue(n-1)
-// }
+goSumOfSquares(a: i32, n: i32): i32 {
+    if (n == 0) return a
+    continue(a + n*n, n-1)
+}
+sumOfSquares(n: i32): i32 {
+    goSumOfSquares(0, n)
+}
 
 main(): i32 {
+    // 3*3 + 2*2 + 1*1 = 9 + 4 + 1 = 14
+    r = sumOfSquares(10)
 
-    puts("Hello World!")
-
-    // continue()
+    printI32(r)
+    puts("")
 
     0
 }

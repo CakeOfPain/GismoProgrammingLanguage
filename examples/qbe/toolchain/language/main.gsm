@@ -5,6 +5,7 @@ $KEYWORD(stack)
 $KEYWORD(if)
 $KEYWORD(continue)
 $KEYWORD($NEWADDR)
+$KEYWORD($NEWCONTINUEID)
 
 
 $NEWADDR() ::= $CAT("%t", $IOTA())
