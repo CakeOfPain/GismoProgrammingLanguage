@@ -1,17 +1,18 @@
 
-// A function for setting an variable
-myFunction(a: ref(bool), b: bool): void {
-    a <- b
-}
+puts(m: str): void
 
-// The Main function, the first function that will
-// be executed
+// finallyWhile(n: i32): void {
+//     if (n == 0) return
+//     puts("Hello World!")
+
+//     continue(n-1)
+// }
+
 main(): i32 {
-    myBoolean = stack(true)
-    myFunction(myBoolean, false)
 
-    a = i32(10)
-    c = a < 2
+    puts("Hello World!")
+
+    // continue()
 
     0
 }

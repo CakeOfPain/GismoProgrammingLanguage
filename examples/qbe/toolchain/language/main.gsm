@@ -2,7 +2,8 @@
 $KEYWORD(ref)
 $KEYWORD(deref)
 $KEYWORD(stack)
-$KEYWORD(match)
+$KEYWORD(if)
+$KEYWORD(continue)
 $KEYWORD($NEWADDR)
 
 

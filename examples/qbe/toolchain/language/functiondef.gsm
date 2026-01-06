@@ -75,6 +75,8 @@ FunctionProto{*} ::= {
     functionProtoTyped ::= $1
     functionProto ::= $UNTYPE(functionProtoTyped)
 
+    $IS_VOID_FUNCTION ::= $IF($TYPEOF(functionProtoTyped, VoidFunctionProto), 1, $EQUALS($UNTYPE($UNTYPE(functionProtoTyped).returnType).id, "void"))
+
     // Write "export function" if address is main, otherwise "function"
     $IF($EQUALS(functionProto.addr, "main"), 
         $WRITE("export function "), 
@@ -94,7 +96,29 @@ FunctionProto{*} ::= {
 
     $WRITE(") {\n@start\n")
 
-    _result ::= {
+    // Creating this macro, for later return with if(...) return statements
+    $RETURN_FROM_FUNCTION ::= $LAMBDA(blame, $LAMBDA(result, {
+        $IF($IS_VOID_FUNCTION, {}, { // ELSE:
+            typeName ::= TYPE2TYPENAME($UNTYPE(functionProtoTyped).returnType)
+            nativeType ::= TYPE2NATIVE($UNTYPE(functionProtoTyped).returnType)
+            prefix ::= $UNTYPE($UNTYPE(functionProtoTyped).returnType).prefix
+
+            isCorrectType ::= $EVAL($REPLACE($QUOTE($TYPEOF(result, T)), T, typeName))
+            isNativeType ::= $EVAL($REPLACE($QUOTE($TYPEOF(result, T)), T, nativeType))
+
+            $IF(isNativeType, {
+                $WRITE($CAT(prefix, result))
+            }, $IF(isCorrectType, {
+                $WRITE($UNTYPE(result).addr)
+            }, {
+                $LAMBDA(x, {
+                    $RAISE(x, "Function requires return value to match with the return type")
+                })(blame)
+            }))
+        })
+    }))
+
+    result ::= {
         // Define arguments as Values in Scope
         $FOREACH(mappedArgs, arg,
             $EVAL($REPLACE($REPLACE($QUOTE(S ::= $TYPEDEF($Value(arg.type, arg.addr), T)), S, arg.name), T, TYPE2TYPENAME(arg.type))))
@@ -106,26 +130,7 @@ FunctionProto{*} ::= {
 
     $WRITE("\n\tret ")
 
-    $IF($TYPEOF(functionProtoTyped, VoidFunctionProto), {}, { // ELSE:
-        $IF($EQUALS($UNTYPE($UNTYPE(functionProtoTyped).returnType).id, "void"), {}, { // ELSE:
-            typeName ::= TYPE2TYPENAME($UNTYPE(functionProtoTyped).returnType)
-            nativeType ::= TYPE2NATIVE($UNTYPE(functionProtoTyped).returnType)
-            prefix ::= $UNTYPE($UNTYPE(functionProtoTyped).returnType).prefix
-
-            isCorrectType ::= $EVAL($REPLACE($QUOTE($TYPEOF(_result, T)), T, typeName))
-            isNativeType ::= $EVAL($REPLACE($QUOTE($TYPEOF(_result, T)), T, nativeType))
-
-            $IF(isNativeType, {
-                $WRITE($CAT(prefix, _result))
-            }, $IF(isCorrectType, {
-                $WRITE($UNTYPE(_result).addr)
-            }, {
-                $LAMBDA(x, {
-                    $RAISE(x, "Function requires return value to match with the return type")
-                })(functionProto.name)
-            }))
-        })
-    })
+    $RETURN_FROM_FUNCTION(functionProto.name)(result)
     
     $WRITE("\n}\n")
 }

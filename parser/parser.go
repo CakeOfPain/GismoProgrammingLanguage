@@ -110,9 +110,12 @@ func parseExpression(r *TokenReader, parentPrecedence int) *SyntaxNode {
         
         operator := r.Next()
         
-        // FIX 1: Skip newlines after an operator. 
+        // Skip newlines after an operator. 
         // This allows constructs like: arg1, \n arg2
-        skipNewlines(r)
+        // excepts it is a identifier operator
+        if operator.TokenType != tokentype.Identifier {
+            skipNewlines(r)
+        }
 
         right := parseExpression(r, precedence+1)
         if right == nil {

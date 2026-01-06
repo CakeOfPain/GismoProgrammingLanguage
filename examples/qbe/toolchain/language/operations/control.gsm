@@ -1,0 +1,107 @@
+
+if(VALUE_BOOL) ::= $TYPEDEF($UNTYPE($2), ifstatement)
+if(VALUE_I8)   ::= $RAISE($$, "Expected a boolean as condition not i8")
+if(VALUE_I16)  ::= $RAISE($$, "Expected a boolean as condition not i16")
+if(VALUE_I32)  ::= $RAISE($$, "Expected a boolean as condition not i32")
+if(VALUE_I64)  ::= $RAISE($$, "Expected a boolean as condition not i64")
+if(VALUE_F64)  ::= $RAISE($$, "Expected a boolean as condition not f64")
+if(VALUE_REF)  ::= $RAISE($$, "Expected a boolean as condition not a reference")
+
+NESTED_IF_ERROR_MESSAGE ::= "Nested ifs are not allowed in this language\n" + \
+        "Try to flatten out the logic, by defining another function."
+
+ifstatement return (*) ::= {
+    $IF($IS_VOID_FUNCTION, { // YES
+        $RAISE($$, "This function should return nothing")
+    }, {})
+
+    condBool ::= $UNTYPE($1)
+    labelTrue ::= $CAT("@label", $IOTA())
+    labelFalse ::= $CAT("@label", $IOTA())
+
+    $WRITE("\tjnz ")
+    $WRITE(condBool.addr)
+    $WRITE(", ")
+    $WRITE(labelTrue)
+    $WRITE(", ")
+    $WRITE(labelFalse)
+    $WRITE("\n")
+
+    $WRITE(labelTrue)
+    $WRITE("\n")
+
+    if(*) ::= $RAISE($$, NESTED_IF_ERROR_MESSAGE)
+    result ::= {$2}
+
+    $WRITE("\tret ")
+
+    $RETURN_FROM_FUNCTION($QUOTE($$))(result)
+
+    $WRITE("\n")
+
+    $WRITE(labelFalse)
+    $WRITE("\n")
+
+    $NIL()
+}
+
+(ifstatement return) ::= {
+    $IF($IS_VOID_FUNCTION, {}, { // NO
+        $RAISE($$, "This function should return a value")
+    })
+
+    condBool ::= $UNTYPE($1)
+    labelTrue ::= $CAT("@label", $IOTA())
+    labelFalse ::= $CAT("@label", $IOTA())
+
+    $WRITE("\tjnz ")
+    $WRITE(condBool.addr)
+    $WRITE(", ")
+    $WRITE(labelTrue)
+    $WRITE(", ")
+    $WRITE(labelFalse)
+    $WRITE("\n")
+
+    $WRITE(labelTrue)
+    $WRITE("\n")
+
+    if(*) ::= $RAISE($$, NESTED_IF_ERROR_MESSAGE)
+
+    $WRITE("\tret\n")
+
+    $WRITE(labelFalse)
+    $WRITE("\n")
+
+    $NIL()
+}
+
+ifstatement then (*) ::= {
+    condBool ::= $UNTYPE($1)
+    labelTrue ::= $CAT("@label", $IOTA())
+    labelFalse ::= $CAT("@label", $IOTA())
+
+    $WRITE("\tjnz ")
+    $WRITE(condBool.addr)
+    $WRITE(", ")
+    $WRITE(labelTrue)
+    $WRITE(", ")
+    $WRITE(labelFalse)
+    $WRITE("\n")
+
+    $WRITE(labelTrue)
+    $WRITE("\n")
+
+    if(*) ::= $RAISE($$, NESTED_IF_ERROR_MESSAGE)
+    {$2}
+
+    $WRITE("\tjmp ")
+    $WRITE(labelFalse)
+    $WRITE("\n")
+
+    $WRITE(labelFalse)
+    $WRITE("\n")
+
+    $NIL()
+}
+
+// continue(*) ::= {} 
