@@ -6,6 +6,7 @@
 <center><h1>Gismo Programming Language</h1></center>
 
 [Try It Out Here (Webdemo)](https://gismo-online-compiler.pages.dev)
+[Medium Article About Gismo](https://medium.com/@Leo.Englert/i-made-a-programming-language-for-making-another-programming-language-d7382c9356ca)
 
 
 This is the repository for the **Gismo Programming Language**—a meta-programming language that allows you to extend its syntax and functionality as needed. Gismo combines the extensibility of Lisp with a C-like syntax, making it both powerful and familiar.
