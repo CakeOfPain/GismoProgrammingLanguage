@@ -6,7 +6,9 @@ $KEYWORD(if)
 $KEYWORD(continue)
 $KEYWORD($NEWADDR)
 $KEYWORD($NEWCONTINUEID)
-
+$KEYWORD(struct)
+$KEYWORD(sizeof)
+$KEYWORD(null)
 
 $NEWADDR() ::= $CAT("%t", $IOTA())
 
@@ -19,19 +21,83 @@ false ::= $TYPEDEF($Value(bool, 0), VALUE_BOOL)
 
 // Global Contants
 symbol = int ::= {
-    $EXPORT($1, $2)
+    $EXPORT($QUOTE($1), $2)
 }
 
 symbol = string ::= {
-    $EXPORT($1, $2)
+    $EXPORT($QUOTE($1), $2)
 }
 
 symbol = float ::= {
-    $EXPORT($1, $2)
+    $EXPORT($QUOTE($1), $2)
 }
 
 symbol = VALUE_BOOL ::= {
-    $EXPORT($1, $2)
+    $EXPORT($QUOTE($1), $2)
+}
+
+symbol = struct ::= {
+    name ::= $QUOTE($1)
+    $EXPORT(name, $TYPEDEF($Type(
+        name, // id
+        "", // prefix
+        "l", // nativeType
+        "l", // nativeMemoryType
+        VALUE_STRUCT, // typeName
+        $NIL(), // constantType
+        $VECTOR(0), // metaData
+        8 // memory_size 
+    ), STRUCTDEF, TYPE))
+}
+
+symbol = STRUCTDEF ::= {
+    name ::= $QUOTE($1)
+    parentType ::= $UNTYPE($2)
+
+    $EXPORT(name, $TYPEDEF($Type(
+        name, // id
+        parentType.prefix, // prefix
+        parentType.nativeType, // nativeType
+        parentType.nativeMemoryType, // nativeMemoryType
+        parentType.typeName, // typeName
+        parentType.constantType, // constantType
+        parentType.metaData, // metaData
+        parentType.memory_size // memory_size 
+    ), STRUCTDEF, TYPE))
+}
+
+symbol<TYPE> ::= $SYMCAT($QUOTE($1), $UNTYPE($2).id)
+
+STRUCTDEF = STRUCTDEF ::= {
+    name ::= $UNTYPE($1).id
+    parentType ::= $UNTYPE($2)
+
+    $EXPORT(name, $TYPEDEF($Type(
+        name, // id
+        parentType.prefix, // prefix
+        parentType.nativeType, // nativeType
+        parentType.nativeMemoryType, // nativeMemoryType
+        parentType.typeName, // typeName
+        parentType.constantType, // constantType
+        parentType.metaData, // metaData
+        parentType.memory_size // memory_size 
+    ), STRUCTDEF, TYPE))
+}
+
+symbol = TYPE ::= {
+    name ::= $QUOTE($1)
+    parentType ::= $UNTYPE($2)
+
+    $EXPORT(name, $TYPEDEF($Type(
+        name, // id
+        parentType.prefix, // prefix
+        parentType.nativeType, // nativeType
+        parentType.nativeMemoryType, // nativeMemoryType
+        parentType.typeName, // typeName
+        parentType.constantType, // constantType
+        parentType.metaData, // metaData
+        parentType.memory_size // memory_size 
+    ), TYPE))
 }
 
 $LOAD("toolchain/language/functiondef.gsm")

@@ -1,0 +1,54 @@
+
+VALUE_STRUCT . (*) ::= {
+    value ::= $UNTYPE($1)
+    field ::= $QUOTE($2)
+
+    $IF($TYPEOF(field, symbol), {}, $RAISE($$, "Expected a symbol as field"))
+
+    foundFields ::= $VECTOR(0)
+    offset ::= $VECTOR(1)
+    $VECTOR_SET(offset, 0, 0)
+
+    // Get field from struct
+    $FOREACH($UNTYPE(value.type).metaData, x, {
+        $IF($EQUALS($CAR($QUOTE(x)), field), {
+            foundFields append $QUOTE(x)
+        }, {
+            $IF($EQUALS($VECTOR_LEN(foundFields), 0), {
+                $VECTOR_SET(offset, 0, $VECTOR_GET(offset, 0) + $UNTYPE($CDR($QUOTE(x))).memory_size)
+            }, {})
+        })
+    })
+
+    $IF($EQUALS($VECTOR_LEN(foundFields), 0), {
+        $RAISE($2, "Fieldname not a member of this struct (" + field + ")")
+    }, {})
+
+    foundField ::= $VECTOR_GET(foundFields, 0)
+    subType ::= $CDR(foundField)
+
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =l add ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($VECTOR_GET(offset, 0))
+    $WRITE("\n")
+
+    reference ::= $TYPEDEF($Value(ref(subType), addr), VALUE_REF)
+
+    reference
+}
+
+VALUE_STRUCT -> (*) ::= deref($1.($2))
+
+VALUE_STRUCT {*} ::= {
+    $FOREACH($UNTYPE($UNTYPE($1).type).metaData, x,
+        $EVAL($REPLACE($QUOTE(S ::= $1.S), S, $CAR($QUOTE(x)))))
+
+    {$2}
+
+    $1
+}

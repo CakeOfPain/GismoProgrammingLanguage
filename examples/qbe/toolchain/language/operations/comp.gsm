@@ -198,6 +198,205 @@ VALUE_BOOL == VALUE_BOOL ::= {
     $TYPEDEF($Value(bool, addr), VALUE_BOOL)
 }
 
+// +++ Unequals +++
+
+VALUE_I8 != int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cnew ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+
+VALUE_I16 != int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cnew ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+
+VALUE_I32 != int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cnew ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I64 != int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cnel ")
+    $WRITE(value.addr)
+    $WRITE(", ")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 != int ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cned ")
+    $WRITE(value.addr)
+    $WRITE(", d_")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 != float ::= {
+    value ::= $UNTYPE($1)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cned ")
+    $WRITE(value.addr)
+    $WRITE(", d_")
+    $WRITE($2)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+int != VALUE_I8 ::= $2 != $1
+int != VALUE_I16 ::= $2 != $1
+int != VALUE_I32 ::= $2 != $1
+int != VALUE_I64 ::= $2 != $1
+int != VALUE_F64 ::= $2 != $1
+float != VALUE_F64 ::= $2 != $1
+
+// Values:
+
+VALUE_I8 != VALUE_I8 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cnew ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I16 != VALUE_I16 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cnew ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I32 != VALUE_I32 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cnew ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_I64 != VALUE_I64 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cnel ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_F64 != VALUE_F64 ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cned ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
+VALUE_BOOL != VALUE_BOOL ::= {
+    lvalue ::= $UNTYPE($1)
+    rvalue ::= $UNTYPE($2)
+    addr ::= $NEWADDR()
+
+    $WRITE("\t")
+    $WRITE(addr)
+    $WRITE(" =w cnew ")
+    $WRITE(lvalue.addr)
+    $WRITE(", ")
+    $WRITE(rvalue.addr)
+    $WRITE("\n")
+
+    $TYPEDEF($Value(bool, addr), VALUE_BOOL)
+}
+
 // +++ Greater than +++
 
 // Constants:
@@ -935,3 +1134,9 @@ VALUE_F64 >= VALUE_F64 ::= {
 
     $TYPEDEF($Value(bool, addr), VALUE_BOOL)
 }
+
+VALUE_REF    == null ::= $TYPEDEF($Value(i64, $UNTYPE($1).addr), VALUE_I64) == i64(0)
+VALUE_STRUCT == null ::= $TYPEDEF($Value(i64, $UNTYPE($1).addr), VALUE_I64) == i64(0)
+
+VALUE_REF    != null ::= $TYPEDEF($Value(i64, $UNTYPE($1).addr), VALUE_I64) != i64(0)
+VALUE_STRUCT != null ::= $TYPEDEF($Value(i64, $UNTYPE($1).addr), VALUE_I64) != i64(0)

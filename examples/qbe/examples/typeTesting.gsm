@@ -1,0 +1,14 @@
+$LOAD("./examples/runtime.gsm")
+
+Person = struct(name: str, age: i32)
+
+myFunction(): struct(name: str, age: i32) {
+    Person{name = ""}
+}
+
+main(): i32 {
+
+    leo = Person("Leo", 23)
+
+    0
+}

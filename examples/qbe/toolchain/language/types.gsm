@@ -106,6 +106,42 @@ ref(TYPE) ::= {
     $EVAL($REPLACE(template, T, typeId))
 }
 
+// Structs definitons
+struct(*) ::= {
+    fieldsRaw ::= $FLATTEN($QUOTE($2), ",")
+    fields ::= fieldsRaw map $LAMBDA(x, {
+        $IF($EQUALS($CAR(x), ":"), {}, { // no
+            $RAISE($$, "Invalid operator within argument definition")
+        })
+        T ::= $EVAL($CAR($CDR($CDR(x))))
+        NAME ::= $CAR($CDR(x))
+
+        // CHECK: Ensure NAME is a symbol
+        $IF($TYPEOF(NAME, "symbol"), {}, $RAISE($$, $CAT("Expected a symbol, not ", NAME)))
+
+        // CHECK: Ensure T is a valid type immediately
+        $IF($TYPEOF(T, "TYPE"), {}, $RAISE($$, $CAT("Expected a valid Type descriptor, not ", T)))
+
+        // Transform into Variable object
+        $CONS(NAME, T)
+    })
+
+    typeId ::= struct_
+    $FOREACH(fields, field, (typeId ::= $SYMCAT($SYMCAT(typeId, $UNTYPE($CDR($QUOTE(field))).id), "_")))
+    typeId ::= $SYMCAT(typeId, structend)
+
+    $TYPEDEF($Type(
+        typeId, // id
+        "", // prefix
+        "l", // nativeType
+        "l", // nativeMemoryType
+        VALUE_STRUCT, // typeName
+        $NIL(), // constantType
+        fields, // metaData
+        8 // memory_size
+    ), STRUCTDEF, TYPE)
+}
+
 TYPE2TYPENAME ::= $LAMBDA(x, {
     $UNTYPE(x).typeName
 })
@@ -119,5 +155,17 @@ TYPE2LANGTYPE ::= $LAMBDA(x, {
 })
 
 TYPE2ALIGNMENT ::= $LAMBDA(x, {
-    $IF($UNTYPE(x).memory_size < 4, 4, $UNTYPE(x).memory_size)
+    $IF($UNTYPE(x).memory_size < 4, 4, {
+        $IF($UNTYPE(x).memory_size < 8, 8, 16)
+    })
 })
+
+sizeof(TYPE)   ::= $UNTYPE($2).memory_size
+sizeof(STRUCTDEF) ::= {
+    type ::= $UNTYPE($2)
+    sumOfMemory ::= 0
+    $FOREACH(type.metaData, x, (sumOfMemory ::= {
+        sumOfMemory + $UNTYPE($CDR($QUOTE(x))).memory_size
+    }))
+    sumOfMemory
+}

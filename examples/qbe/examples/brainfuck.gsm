@@ -1,0 +1,145 @@
+$LOAD("./examples/runtime.gsm")
+
+// > | ptr++;
+// < | ptr--;
+// + | cell[ptr]++;
+// - | cell[ptr]--;
+// . | putchar (cell[ptr]);
+// , | cell[ptr] = getchar();
+// [ | while (cell[ptr]) {
+// ] | }
+
+indexOfOpeningBracket(programBuffer: ref(i8), pc: i32, numberOfBrackets: i32): i32 {
+    currentInstruction = deref(programBuffer(pc))
+    if (numberOfBrackets <= 0) return pc+1
+    if (currentInstruction == 91) then {
+        // [
+        continue(programBuffer, pc-1, numberOfBrackets-1)
+    }
+    if (currentInstruction == 93) then {
+        // ]
+        continue(programBuffer, pc-1, numberOfBrackets+1)
+    }
+
+    continue(programBuffer, pc-1, numberOfBrackets)
+}
+
+indexOfClosingBracket(programBuffer: ref(i8), pc: i32, numberOfBrackets: i32): i32 {
+    currentInstruction = deref(programBuffer(pc))
+    if (numberOfBrackets <= 0) return pc-1
+    if (currentInstruction == 91) then {
+        // [
+        continue(programBuffer, pc+1, numberOfBrackets+1)
+    }
+    if (currentInstruction == 93) then {
+        // ]
+        continue(programBuffer, pc+1, numberOfBrackets-1)
+    }
+
+    continue(programBuffer, pc+1, numberOfBrackets)
+}
+
+assertBracket(currentValue: i32, programBuffer: ref(i8), pc: i32): i32 {
+    if (currentValue == 0) return indexOfClosingBracket(programBuffer, pc+1, 1) + 1
+    pc+1
+}
+
+// printCharNTimes(n: i32, c: i8): void {
+//     if (n < 1) return
+//     putchar(c)
+//     continue(n-1, c)
+// }
+
+// printProgramBuffer(programBuffer: ref(i8), pc: i32): void {
+//     puts(str(programBuffer))
+//     printCharNTimes(pc, 32)
+//     putchar(94)
+// }
+
+// debugBrainFuck(memoryTabe: ref(i32), programBuffer: ref(i8), mp: i32, pc: i32): void {
+//     printStr("currentPC: "); printI32(pc); printStr("\n")
+//     printStr("currentMP: "); printI32(mp); printStr("\n")
+//     printStr("currentValue: "); printI32(deref(memoryTabe(mp))); printStr("\n")
+
+//     printProgramBuffer(programBuffer, pc)
+
+//     getchar()
+// }
+
+goBrainFuckInterpret(memoryTabe: ref(i32), programBuffer: ref(i8), mp: i32, pc: i32): void {
+    currentInstruction = deref(programBuffer(pc))
+
+    // debugBrainFuck(memoryTabe, programBuffer, mp, pc)
+
+    if (currentInstruction == 43) then {
+        // +
+        memoryTabe(mp) <- deref(memoryTabe(mp)) + 1
+        continue(memoryTabe, programBuffer, mp, pc+1)
+    }
+    if (currentInstruction == 45) then {
+        // -
+        memoryTabe(mp) <- deref(memoryTabe(mp)) - 1
+        continue(memoryTabe, programBuffer, mp, pc+1)
+    }
+    if (currentInstruction == 60) then {
+        // <
+        continue(memoryTabe, programBuffer, mp-1, pc+1)
+    }
+    if (currentInstruction == 62) then {
+        // >
+        continue(memoryTabe, programBuffer, mp+1, pc+1)
+    }
+    if (currentInstruction == 46) then {
+        // .
+        putchar(i8(deref(memoryTabe(mp))))
+        continue(memoryTabe, programBuffer, mp, pc+1)
+    }
+    if (currentInstruction == 44) then {
+        // ,
+        memoryTabe(mp) <- i32(getchar())
+        continue(memoryTabe, programBuffer, mp, pc+1)
+    }
+    if (currentInstruction == 91) then {
+        // [
+        index = assertBracket(deref(memoryTabe(mp)), programBuffer, pc)
+        continue(memoryTabe, programBuffer, mp, index)
+    }
+    if (currentInstruction == 93) then {
+        // ]
+        index = indexOfOpeningBracket(programBuffer, pc-1, 1)
+        continue(memoryTabe, programBuffer, mp, index)
+    }
+    if (currentInstruction == 0) return
+    if (currentInstruction == 10) return
+
+    continue(memoryTabe, programBuffer, mp, pc+1)
+}
+
+brainfuckInterpret(memoryTabe: ref(i32), programBuffer: ref(i8)): void {
+    goBrainFuckInterpret(memoryTabe, programBuffer, 0, 0)
+}
+
+zeroMem(m: ref(i32), i: i32, n: i32): ref(i32) {
+    if (i >= n) return m
+    m(i) <- i32(0)
+    continue(m, i+1, n)
+}
+
+zeroProg(m: ref(i8), i: i32, n: i32): ref(i8) {
+    if (i >= n) return m
+    m(i) <- i8(0)
+    continue(m, i+1, n)
+}
+
+
+main(): i32 {
+    // Handling IO
+    memoryTabe = zeroMem(stack(i32 * 300), 0, 300)
+    programBuffer = zeroProg(stack(i8 * 255), 0, 255)
+    stdin = getStdIn()
+    fgets(programBuffer, 255, stdin)
+
+
+    brainfuckInterpret(memoryTabe, programBuffer)
+    0
+}

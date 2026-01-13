@@ -1,0 +1,94 @@
+
+$WRITE("
+
+# Runtime functions for printing
+# different values
+
+data $fmtPrintI32 = {b \"%d\", b 0}
+
+function $printI32(w %value) {
+@start
+    call $printf(l $fmtPrintI32, ..., w %value)
+    ret
+}
+
+data $fmtPrintF64 = {b \"%f\", b 0}
+
+function $printF64(d %value) {
+@start
+    call $printf(l $fmtPrintF64, ..., d %value)
+    ret
+}
+
+data $fmtReadI32 = {b \"%d\", b 0}
+
+function $readI32(l %addr) {
+@start
+    call $scanf(l $fmtReadI32, ..., l %addr)
+    ret
+}
+
+data $fmtPrintStr = {b \"%s\", b 0}
+function $printStr(l %string) {
+@start
+    call $printf(l $fmtPrintStr, ..., l %string)
+    ret
+}
+
+data $mode_r = {b \"r\", b 0}
+function l $getStdInOut(w %fd) {
+@start
+    %stream =l call $fdopen(w %fd, l $mode_r)
+    ret %stream
+}
+
+")
+
+printI32(value: i32): void
+printF64(value: f64): void
+readI32(value: ref(i32)): void
+getStdInOut(fd: i32): i64
+printStr(value: str): void
+fflush(fd: i64): void
+exit(status: i32): void
+
+puts(m: str): void
+putchar(c: i8): void
+getchar(): i8
+strlen(s: str): i64
+fgets(m: ref(i8), s: i64, f: i64): void
+
+malloc(size: i64): i64
+free(ptr: i64): void
+
+immediateReadI32(): i32 {
+    addr = stack(i32)
+    readI32(addr)
+    deref(addr)
+}
+
+getStdIn(): i64 {
+    getStdInOut(0)
+}
+
+$KEYWORD(heap)
+$KEYWORD(release)
+heap(TYPE) ::= {
+    r = malloc(sizeof($2))
+    $TYPEDEF($Value(ref($2), $UNTYPE(r).addr), VALUE_REF)
+}
+
+heap(STRUCTDEF) ::= {
+    r = malloc(sizeof($2))
+    $TYPEDEF($Value($2, $UNTYPE(r).addr), VALUE_STRUCT)
+}
+
+release(VALUE_REF) ::= {
+    addr ::= $TYPEDEF($Value(i64, $UNTYPE($2).addr), VALUE_I64)
+    free(addr)
+}
+
+release(VALUE_STRUCT) ::= {
+    addr ::= $TYPEDEF($Value(i64, $UNTYPE($2).addr), VALUE_I64)
+    free(addr)
+}

@@ -56,6 +56,7 @@ func Builtins() []BuiltinFunction {
         {callback: typeof, identifier: "$TYPEOF"},
         {callback: untype, identifier: "$UNTYPE"},
         {callback: unionizer, identifier: "$UNION"},
+        {callback: unionselector, identifier: "$UNION_SELECT"},
 
         // Control Flow
         {callback: ifFunc, identifier: "$IF"},
@@ -311,6 +312,26 @@ func typeof(args Value, scope *Scope) Value {
         }
     }
 
+    if unionValue, ok := left.(*Union); ok {
+        for _, v := range unionValue.Values {
+            if typedValue, ok := v.(*TypedValue); ok {
+                if v.GetTypeString() == right.String() {
+                    return &Integer{
+                        Value: 1,
+                    }
+                }
+
+                for _, t := range typedValue.TypeFallbacks {
+                    if t.String() == right.String() {
+                        return &Integer{
+                            Value: 1,
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     return &Nil{}
 }
 
@@ -322,6 +343,19 @@ func untype(args Value, scope *Scope) Value {
     value := interpretExpression(argsList[0], scope)
     if typeValue, ok := value.(*TypedValue); ok {
         return typeValue.Value
+    }
+    if unionValue, ok := value.(*Union); ok {
+        untypedValues := make([]Value, len(unionValue.Values))
+        for i, v := range unionValue.Values {
+            if typeValue, ok := v.(*TypedValue); ok {
+                untypedValues[i] = typeValue.Value
+            } else {
+                untypedValues[i] = v
+            }
+        }
+        return &Union{
+            Values: untypedValues,
+        }
     }
     return &Nil{}
 }
@@ -605,6 +639,9 @@ func exporter(args Value, scope *Scope) Value {
     key := interpretExpression(argsList[0], scope)
     // key := argsList[0]
     value := interpretExpression(argsList[1], scope)
+
+    // fmt.Println("Exporting:", key.String(), "->", value.String())
+
     scope.ExportDefinition(key, value)
     return &Nil{}
 }
@@ -779,7 +816,7 @@ func foreacher(args Value, scope *Scope) Value {
         return &Nil{}
     }
     collectionVal := interpretExpression(argsList[0], scope)
-    variableName := interpretExpression(argsList[1], scope)
+    variableName := argsList[1]
     body := argsList[2]
 
     if varSym, ok := variableName.(*Symbol); ok {
@@ -934,4 +971,31 @@ func suggester(args Value, scope *Scope) Value {
     }
 
     return &Nil{}
+}
+
+func unionselector(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    if len(argsList) < 2 {
+        return &Nil{}
+    }
+    unionVal := interpretExpression(argsList[0], scope)
+    typeNameVal := argsList[1]
+
+    typeName, ok := typeNameVal.(*Symbol)
+    if !ok {
+        return unionVal
+    }
+
+    union, ok := unionVal.(*Union)
+    if !ok {
+        return unionVal
+    }
+
+    for _, v := range union.Values {
+        if v.GetTypeString() == typeName.Value {
+            return v
+        }
+    }
+
+    return unionVal
 }

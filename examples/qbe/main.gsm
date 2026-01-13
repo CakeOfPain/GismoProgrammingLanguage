@@ -1,36 +1,17 @@
-$WRITE("
 
-# Runtime functions for printing
-# different values
+$LOAD("examples/runtime.gsm")
 
-data $fmtPrintI32 = {b \"%d\", b 0}
-
-function $printI32(w %value) {
-@start
-    call $printf(l $fmtPrintI32, ..., w %value)
-    ret
-}
-
-")
-
-printI32(value: i32): void
-
-puts(m: str): void
-
-goSumOfSquares(a: i32, n: i32): i32 {
-    if (n == 0) return a
-    continue(a + n*n, n-1)
-}
-sumOfSquares(n: i32): i32 {
-    goSumOfSquares(0, n)
-}
 
 main(): i32 {
-    // 3*3 + 2*2 + 1*1 = 9 + 4 + 1 = 14
-    r = sumOfSquares(10)
+    linkedList = makeLinkedList(stack(LinkedList))
 
-    printI32(r)
-    puts("")
+    append(linkedList, 2, stack(LinkedListNode))
+    append(linkedList, 3, stack(LinkedListNode))
+    append(linkedList, 4, stack(LinkedListNode))
 
+    printI32(getLengthOfList(linkedList))
+    puts("\n")
+    printList(linkedList)
+    
     0
 }

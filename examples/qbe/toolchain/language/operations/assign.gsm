@@ -1,75 +1,88 @@
 
+FunctionProto = (*) ::= ($UNTYPE($1).name) = $2
+
 // int:
 symbol = int ::= {
+    name ::= $QUOTE($1)
     $WRITE("\t%")
-    $WRITE($1)
+    $WRITE(name)
     $WRITE(" =l copy ")
     $WRITE($2)
     $WRITE("\n")
-    $EXPORT($1, $TYPEDEF($Value(i64, $CAT("%", $1)), VALUE_I64))
+    $EXPORT(name, $TYPEDEF($Value(i64, $CAT("%", name)), VALUE_I64))
 }
 
 symbol = VALUE_I8 ::= {
+    name ::= $QUOTE($1)
     value ::= $UNTYPE($2)
-    $EXPORT($1, $TYPEDEF(value, VALUE_I8))
+    $EXPORT(name, $TYPEDEF(value, VALUE_I8))
 }
 
 symbol = VALUE_I16 ::= {
+    name ::= $QUOTE($1)
     value ::= $UNTYPE($2)
-    $EXPORT($1, $TYPEDEF(value, VALUE_I16))
+    $EXPORT(name, $TYPEDEF(value, VALUE_I16))
 }
 
 symbol = VALUE_I32 ::= {
+    name ::= $QUOTE($1)
     value ::= $UNTYPE($2)
-    $EXPORT($1, $TYPEDEF(value, VALUE_I32))
+    $EXPORT(name, $TYPEDEF(value, VALUE_I32))
 }
 
 symbol = VALUE_I64 ::= {
+    name ::= $QUOTE($1)
     value ::= $UNTYPE($2)
-    $EXPORT($1, $TYPEDEF(value, VALUE_I64))
+    $EXPORT(name, $TYPEDEF(value, VALUE_I64))
 }
 
 symbol = VALUE_BOOL ::= {
+    name ::= $QUOTE($1)
     value ::= $UNTYPE($2)
-    $EXPORT($1, $TYPEDEF(value, VALUE_BOOL))
+    $EXPORT(name, $TYPEDEF(value, VALUE_BOOL))
 }
 
 // float:
 symbol = float ::= {
+    name ::= $QUOTE($1)
     $WRITE("\t%")
-    $WRITE($1)
+    $WRITE(name)
     $WRITE(" =d copy d_")
     $WRITE($2)
     $WRITE("\n")
-    $EXPORT($1, $TYPEDEF($Value(f64, $CAT("%", $1)), VALUE_F64))
+    $EXPORT(name, $TYPEDEF($Value(f64, $CAT("%", name)), VALUE_F64))
 }
 
 symbol = VALUE_F64 ::= {
+    name ::= $QUOTE($1)
     value ::= $UNTYPE($2)
-    $EXPORT($1, $TYPEDEF(value, VALUE_F64))
+    $EXPORT(name, $TYPEDEF(value, VALUE_F64))
 }
 
 // string:
 symbol = string ::= {
+    name ::= $QUOTE($1)
     index ::= $DECLARE_STRING($2)
     addr ::= $CAT("$str", index)
 
     $WRITE("\t%")
-    $WRITE($1)
+    $WRITE(name)
     $WRITE(" =l copy ")
     $WRITE(addr)
     $WRITE("\n")
     
-    $EXPORT($1, $TYPEDEF($Value(str, $CAT("%", $1)), VALUE_STR))
+    $EXPORT(name, $TYPEDEF($Value(str, $CAT("%", name)), VALUE_STR))
 }
 
 symbol = VALUE_STR ::= {
+    name ::= $QUOTE($1)
     value ::= $UNTYPE($2)
-    $EXPORT($1, $TYPEDEF(value, VALUE_STR))
+    $EXPORT(name, $TYPEDEF(value, VALUE_STR))
 }
 
 symbol = VALUE_REF ::= {
-    $EXPORT($1, $2)
+    name ::= $QUOTE($1)
+    $EXPORT(name, $2)
 }
 
 // Reference
@@ -110,3 +123,26 @@ VALUE_REF <- VALUE_F64 ::= ($1 $STORE2MEM $2) $ASSERT_STORE2MEM $$
 VALUE_REF <- VALUE_REF ::= ($1 $STORE2MEM $2) $ASSERT_STORE2MEM $$
 VALUE_REF <- VALUE_STR ::= ($1 $STORE2MEM $2) $ASSERT_STORE2MEM $$
 VALUE_REF <- VALUE_BOOL ::= ($1 $STORE2MEM $2) $ASSERT_STORE2MEM $$
+
+VALUE_REF <- null ::= {
+    subType ::= $UNTYPE($UNTYPE($1).type).metaData
+    nullptr ::= $UNTYPE(i64(0))
+    
+    $IF($EQUALS($UNTYPE(subType).typeName, VALUE_REF), {
+        $1 <- $TYPEDEF($Value(ref(subType), nullptr.addr), VALUE_REF)
+    }, {
+        $IF($EQUALS($UNTYPE(subType).typeName, VALUE_STRUCT), {
+            $1 <- $TYPEDEF($Value(subType, nullptr.addr), VALUE_STRUCT)
+        }, {
+            $RAISE($$, "Cannot assign null to an non reference type")
+        })
+    })
+}
+
+// Structs
+symbol = VALUE_STRUCT ::= {
+    name ::= $QUOTE($1)
+    $EXPORT(name, $2)
+}
+
+VALUE_REF <- VALUE_STRUCT ::= ($1 $STORE2MEM $2) $ASSERT_STORE2MEM $$

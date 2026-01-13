@@ -267,6 +267,14 @@ str(string) ::= {
     $TYPEDEF($Value(str, addr), VALUE_STR)
 }
 
+str(VALUE_REF) ::= {
+    reference ::= $UNTYPE($2)
+    $IF($EQUALS($UNTYPE(reference.type).id, ref_i8), {}, {
+        $RAISE($$, $CAT("Value must be a ref(i8) not ", $UNTYPE(reference.type).id))
+    })
+    $TYPEDEF($Value(str, reference.addr), VALUE_STR)
+}
+
 bool(VALUE_BOOL) ::= $2
 
 bool(int) ::= $IF($EQUALS($2, 1), true, $IF($EQUALS($2, 0), false, {

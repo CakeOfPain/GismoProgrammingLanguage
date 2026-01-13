@@ -38,10 +38,11 @@ FunctionProto(*) ::= {
 
     formatted_args ::= (fn_meta.arguments zip given_args) map $LAMBDA(arg_def, {
         fn_meta_arg ::= $CAR(arg_def)
-        given_arg ::= $CDR(arg_def)
 
         expected_native_type ::= TYPE2NATIVE(fn_meta_arg.type)
         expected_type ::= TYPE2TYPENAME(fn_meta_arg.type)
+
+        given_arg ::= $EVAL($REPLACE($QUOTE($UNION_SELECT($CDR(arg_def), T)), T, expected_type))
 
         isNativeType ::= $EVAL($REPLACE($QUOTE($TYPEOF(given_arg, T)), T, expected_native_type))
         isCorrectType ::= $EVAL($REPLACE($QUOTE($TYPEOF(given_arg, T)), T, expected_type))
@@ -56,8 +57,7 @@ FunctionProto(*) ::= {
                 $CAT($UNTYPE(fn_meta_arg.type).nativeType, $CAT(" ", given_arg))
             }))
         }, $IF(isCorrectType, {
-
-            // Check Pointer type
+            // Check Pointer type (Existing Logic)
             $IF($EQUALS(expected_type, VALUE_REF), {
                 $IF($EQUALS($UNTYPE(fn_meta_arg.type).id, $UNTYPE($UNTYPE(given_arg).type).id), {}, {
                     $RAISE($$, "Type Mismatch: Function expects " + ($UNTYPE(fn_meta_arg.type).id) + " for argument " + (fn_meta_arg.name) + ", not " + ($UNTYPE($UNTYPE(given_arg).type).id))

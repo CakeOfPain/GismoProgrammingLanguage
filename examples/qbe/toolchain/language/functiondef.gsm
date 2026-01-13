@@ -8,7 +8,7 @@ symbol() ::= {
     addr ::= function_name
     
     function_value ::= $Function(function_name, return_type, arguments, addr)
-    function ::= $TYPEDEF(function, Function)
+    function ::= $TYPEDEF(function_value, Function)
     function_prototype ::= $TYPEDEF(function_value, VoidFunctionProto, FunctionProto)
 
     $EXPORT(function_name, $UNION(function, function_prototype))
@@ -27,11 +27,17 @@ symbol(*) ::= {
     
     // 2. Parse, Validate, and Transform arguments immediately
     arguments ::= raw_arguments map $LAMBDA(x, {
+        $IF($EQUALS($CAR(x), ":"), {}, { // no
+            $RAISE($$, "Invalid operator within argument definition")
+        })
         T ::= $EVAL($CAR($CDR($CDR(x))))
-        NAME ::= $EVAL($CAR($CDR(x)))
+        NAME ::=  $CAR($CDR(x))
+
+        // CHECK: Ensure NAME is a symbol
+        $IF($TYPEOF(NAME, "symbol"), {}, $RAISE($$, $CAT("Expected a symbol, not ", NAME)))
 
         // CHECK: Ensure T is a valid type immediately
-        $IF($TYPEOF(T, "TYPE"), {}, $RAISE($2, $CAT("Expected a valid Type descriptor, not ", T)))
+        $IF($TYPEOF(T, "TYPE"), {}, $RAISE($$, $CAT("Expected a valid Type descriptor, not ", T)))
 
         // Transform into Variable object
         $Variable(NAME, T, $CAT("%", NAME))
@@ -41,7 +47,7 @@ symbol(*) ::= {
     
     // 3. Store the fully parsed arguments in the function value
     function_value ::= $Function(function_name, return_type, arguments, addr)
-    function ::= $TYPEDEF(function, Function)
+    function ::= $TYPEDEF(function_value, Function)
     function_prototype ::= $TYPEDEF(function_value, VoidFunctionProto, FunctionProto)
 
     $EXPORT(function_name, $UNION(function, function_prototype))
@@ -65,7 +71,7 @@ VoidFunctionProto : (*) ::= {
     fn_value ::= $Function(fn.name, type_descriptor, fn.arguments, fn.addr)
     fn_prototype ::= $TYPEDEF(fn_value, FunctionProto)
 
-    $EXPORT(fn.name, $UNION(fn_value, fn_prototype))
+    $EXPORT(fn.name, $UNION($TYPEDEF(fn_value, Function), fn_prototype))
 
     // RETURN:
     fn_prototype
@@ -152,10 +158,17 @@ FunctionProto{*} ::= {
         $WRITE(arg.addr)
         $WRITE(" =")
         $WRITE($UNTYPE(arg.type).nativeType)
-        $WRITE(" phi ")
 
-        // Standard arguments
-        $WRITE("@start %")
+        $IF($GREATER(1, $VECTOR_LEN($CONTINUES_OF_FUNCTION)), {
+            $WRITE(" copy ")
+        }, { // no
+
+            $WRITE(" phi ")
+
+            // Standard arguments
+            $WRITE("@start")
+        })
+        $WRITE(" %")
         $WRITE(arg.name)
 
         $FOREACH($CONTINUES_OF_FUNCTION, id, {

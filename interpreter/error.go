@@ -19,7 +19,7 @@ func RuntimeError(token *tokenizer.Token, format string, a ...interface{}) {
 		fmt.Println("  (No source location available)")
 	}
 
-	os.Exit(1)
+	panic("runtime error")
 }
 
 func printErrorContext(token *tokenizer.Token) {

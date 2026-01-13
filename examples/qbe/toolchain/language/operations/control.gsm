@@ -12,37 +12,60 @@ NESTED_IF_ERROR_MESSAGE ::= "Nested ifs are not allowed in this language\n" + \
 
 if_statement return (*) ::= {
     $IF($IS_VOID_FUNCTION, { // YES
-        $RAISE($$, "This function should return nothing")
-    }, {})
+        condBool ::= $UNTYPE($1)
+        labelTrue ::= $CAT("@label", $IOTA())
+        labelFalse ::= $CAT("@label", $IOTA())
 
-    condBool ::= $UNTYPE($1)
-    labelTrue ::= $CAT("@label", $IOTA())
-    labelFalse ::= $CAT("@label", $IOTA())
+        $WRITE("\tjnz ")
+        $WRITE(condBool.addr)
+        $WRITE(", ")
+        $WRITE(labelTrue)
+        $WRITE(", ")
+        $WRITE(labelFalse)
+        $WRITE("\n")
 
-    $WRITE("\tjnz ")
-    $WRITE(condBool.addr)
-    $WRITE(", ")
-    $WRITE(labelTrue)
-    $WRITE(", ")
-    $WRITE(labelFalse)
-    $WRITE("\n")
+        $WRITE(labelTrue)
+        $WRITE("\n")
 
-    $WRITE(labelTrue)
-    $WRITE("\n")
+        if(*) ::= $RAISE($$, NESTED_IF_ERROR_MESSAGE)
+        result ::= {$2}
 
-    if(*) ::= $RAISE($$, NESTED_IF_ERROR_MESSAGE)
-    result ::= {$2}
+        $WRITE("\tret \n")
 
-    $WRITE("\tret ")
+        $WRITE(labelFalse)
+        $WRITE("\n")
 
-    $RETURN_FROM_FUNCTION($QUOTE($$))(result)
+        $NIL()
+    }, { // No
+        condBool ::= $UNTYPE($1)
+        labelTrue ::= $CAT("@label", $IOTA())
+        labelFalse ::= $CAT("@label", $IOTA())
 
-    $WRITE("\n")
+        $WRITE("\tjnz ")
+        $WRITE(condBool.addr)
+        $WRITE(", ")
+        $WRITE(labelTrue)
+        $WRITE(", ")
+        $WRITE(labelFalse)
+        $WRITE("\n")
 
-    $WRITE(labelFalse)
-    $WRITE("\n")
+        $WRITE(labelTrue)
+        $WRITE("\n")
 
-    $NIL()
+        if(*) ::= $RAISE($$, NESTED_IF_ERROR_MESSAGE)
+        result ::= {$2}
+
+        $WRITE("\tret ")
+
+        $RETURN_FROM_FUNCTION($QUOTE($$))(result)
+
+        $WRITE("\n")
+
+        $WRITE(labelFalse)
+        $WRITE("\n")
+
+        $NIL()
+    })
 }
 
 (if_statement return) ::= {
@@ -108,18 +131,61 @@ continue(*) ::= {
     // Parse Arguments
     arguments ::= $FLATTEN($QUOTE($2), ",")
     parsedArguments ::= arguments map $LAMBDA(x, $COMP2RUN($EVAL(x)))
-    
+
     $IF($EQUALS($VECTOR_LEN(arguments), $VECTOR_LEN($MAPPED_ARGS_FUNCTION)), {}, { // no
         $RAISE($$, "Argument count does not match for calling continue")
     })
 
     $FOREACH((parsedArguments zip $MAPPED_ARGS_FUNCTION), arg, {
+        expected_arg ::= $CDR($QUOTE(arg))
+        given_arg ::= $EVAL($REPLACE($QUOTE($UNION_SELECT($CAR($QUOTE(arg)), T)), T, $UNTYPE(expected_arg.type).typeName))
+
+        $IF($EQUALS($UNTYPE($UNTYPE(given_arg).type).id, $UNTYPE(expected_arg.type).id), {}, { // no
+            $RAISE($$, "Type missmatch, wrong type for calling continue")
+        })
+    })
+
+    continueId ::= $NEWCONTINUEID()
+    continueLabel ::= $CAT("@", continueId)
+
+    $WRITE("\tjmp ")
+    $WRITE(continueLabel)
+    $WRITE("\n")
+
+    $WRITE(continueLabel)
+    $WRITE("\n")
+
+    $FOREACH(parsedArguments zip $MAPPED_ARGS_FUNCTION, arg, {
         given_arg ::= $CAR($QUOTE(arg))
         expected_arg ::= $CDR($QUOTE(arg))
 
-        $IF($EQUALS($UNTYPE($UNTYPE(given_arg).type).typeName, $UNTYPE(expected_arg.type).typeName), {}, { // no
-            $RAISE($$, "Type missmatch, wrong type for calling continue")
-        })
+        $WRITE("\t%")
+        $WRITE(continueId)
+        $WRITE("_")
+        $WRITE(expected_arg.name)
+        $WRITE(" =")
+        $WRITE($UNTYPE(expected_arg.type).nativeType)
+        $WRITE(" copy ")
+        $WRITE($UNTYPE(given_arg).addr) // ARGUMENT ADDR
+        $WRITE("\n")
+    })
+
+    $WRITE("\tjmp @header\n")
+    $WRITE("@dead")
+    $WRITE($IOTA())
+    $WRITE("\n")
+
+    $TYPEDEF(0, continue_statement)
+}
+
+
+continue() ::= {
+    // Parse Arguments
+    arguments ::= $VECTOR(0)
+    parsedArguments ::= arguments map $LAMBDA(x, $COMP2RUN($EVAL(x)))
+    
+    $IF($EQUALS(0, $VECTOR_LEN($MAPPED_ARGS_FUNCTION)), {}, { // no
+        $RAISE($$, "Argument count does not match for calling continue")
     })
 
     continueId ::= $NEWCONTINUEID()

@@ -1,0 +1,43 @@
+
+LinkedListNode<T> = struct
+LinkedListNode<T> = struct(value: T, next: LinkedListNode<T>)
+LinkedList<T> = struct(count: i32, head: LinkedListNode<T>)
+
+makeLinkedList<T>(list: LinkedList<T>): LinkedList {
+    list.count <- i32(0)
+    list.head <- null
+    list
+}
+
+getLastNode<T>(node: LinkedListNode<T>): LinkedListNode<T> {
+    if (node->next == null) return node
+    continue(node->next)
+}
+
+append<T>(list: LinkedList<T>, value: T, node: LinkedListNode<T>): void {
+    node.value <- value
+    node.next <- null
+    
+    list.count <- list->count + 1
+
+    if (list->head == null) return {
+        list.head <- node
+    }
+    lastNode = getLastNode<T>(list->head)
+    lastNode.next <- node
+}
+
+getLengthOfList<T>(list: LinkedList<T>): i32 {
+    list->count
+}
+
+goPrintList<T>(node: LinkedListNode<T>): void {
+    if (node == null) return
+    printI32(node->value)
+    puts("")
+    continue(node->next)
+}
+
+printList<T>(list: LinkedList<T>): void {
+    goPrintList<T>(list->head)
+}

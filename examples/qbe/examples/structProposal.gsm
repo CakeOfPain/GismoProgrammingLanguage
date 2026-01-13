@@ -1,0 +1,10 @@
+
+// Problem -> Recursion?
+myStruct = struct {
+    name: str
+    age: i32
+}
+
+main(): void {
+
+}

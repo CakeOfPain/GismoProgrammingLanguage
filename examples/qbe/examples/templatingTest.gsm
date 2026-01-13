@@ -1,0 +1,15 @@
+
+template ::= $QUOTE(
+    $SYMCAT(add, $QUOTE(T))(a: T, b: T): T {
+        a + b
+    }
+)
+
+$EVAL($REPLACE(template, T, $QUOTE(i32)))
+$EVAL($REPLACE(template, T, $QUOTE(f64)))
+
+main(): i32 {
+    r = addi32(2, 3)
+    r2 = addf64(2.0,3.0)
+    0
+}
