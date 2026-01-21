@@ -9,6 +9,7 @@ $KEYWORD($NEWCONTINUEID)
 $KEYWORD(struct)
 $KEYWORD(sizeof)
 $KEYWORD(null)
+$KEYWORD(macro)
 
 $NEWADDR() ::= $CAT("%t", $IOTA())
 
@@ -19,7 +20,47 @@ $LOAD("toolchain/language/types.gsm")
 true ::= $TYPEDEF($Value(bool, 1), VALUE_BOOL)
 false ::= $TYPEDEF($Value(bool, 0), VALUE_BOOL)
 
+// macro likes
+// macro(symbol) ::= $TYPEDEF($QUOTE($2), MACRO_PROTO)
+// MACRO_PROTO => (*) ::= $TYPEDEF($CONS($UNTYPE($1), $QUOTE($2)), MACRO)
+// MACRO(*) ::= $EVAL($REPLACE($QUOTE($EVAL($REPLACE($CDR($UNTYPE($1)), S, $QUOTE($2)))), S, $CAR($UNTYPE($1))))
+macro(*) ::= {
+    arguments ::= $FLATTEN($QUOTE($2), ",")
+    $TYPEDEF(arguments, MACRO_PROTO)
+}
+MACRO_PROTO => (*) ::= $TYPEDEF($CONS($UNTYPE($1), $QUOTE($2)), MACRO)
+MACRO(*) ::= $DO(
+    ($VALS ::= $FLATTEN($QUOTE($2), ",")),
+    ($ARGS ::= $CAR($UNTYPE($1))),
+
+    $IF($EQUALS($VECTOR_LEN($VALS), $VECTOR_LEN($ARGS)), {}, {
+        $RAISE($$, "Argument count mismatch")
+    }),
+
+    ($EXPR ::= $CDR($UNTYPE($1))),
+
+    $FOREACH($ARGS zip $VALS, $X, $DO(
+        ($ARG ::= $CAR($QUOTE($X))),
+        ($VAL ::= $CDR($QUOTE($X))),
+        ($EXPR ::= $EVAL($REPLACE($QUOTE($REPLACE($EXPR, S, $VAL)), S, $ARG)))
+    )),
+
+    $EVAL($EXPR)
+)
+
+macro() ::= $TYPEDEF(0, SIMPLE_MARCO_PROTO)
+SIMPLE_MARCO_PROTO => (*) ::= $TYPEDEF($QUOTE($2), SIMPLE_MACRO)
+SIMPLE_MACRO() ::= $EVAL($UNTYPE($1))
+
 // Global Contants
+symbol = MACRO ::= {
+    $EXPORT($QUOTE($1), $2)
+}
+
+symbol = SIMPLE_MACRO::= {
+    $EXPORT($QUOTE($1), $2)
+}
+
 symbol = int ::= {
     $EXPORT($QUOTE($1), $2)
 }
@@ -66,7 +107,7 @@ symbol = STRUCTDEF ::= {
     ), STRUCTDEF, TYPE))
 }
 
-symbol<TYPE> ::= $SYMCAT($QUOTE($1), $UNTYPE($2).id)
+symbol[TYPE] ::= $EVAL($SYMCAT($QUOTE($1), $UNTYPE($2).id))
 
 STRUCTDEF = STRUCTDEF ::= {
     name ::= $UNTYPE($1).id

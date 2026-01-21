@@ -46,11 +46,11 @@ $vector(*) ::= $FLATTEN($QUOTE($2), ",")
 
 // VECTOR
 Vector map (*) ::= {
-      len ::= $VECTOR_LEN($1)
+      $len ::= $VECTOR_LEN($1)
 			f ::= $2
-      newVector ::= $VECTOR(len)
+      newVector ::= $VECTOR($len)
 			iterator ::= $LAMBDA(i, {
-      	$IF($GREATER(len, i), {
+      	$IF($GREATER($len, i), {
         	element ::= $VECTOR_GET($1, i)
       		$VECTOR_SET(newVector, i, f(element))
         	iterator($ADD(i, 1))
@@ -61,13 +61,13 @@ Vector map (*) ::= {
 }
 
 Vector join string ::= {
-  len ::= $VECTOR_LEN($1)
+  $len ::= $VECTOR_LEN($1)
   seperator ::= $2
 
   iterator ::= $LAMBDA(i, {
-    $IF($GREATER(len, i), {
+    $IF($GREATER($len, i), {
       element ::= $VECTOR_GET($1, i)
-      $IF($GREATER(len, $ADD(i, 1)), {
+      $IF($GREATER($len, $ADD(i, 1)), {
         $CAT(element, $CAT(seperator, iterator($ADD(i, 1))))
       }, {
         element
@@ -79,9 +79,9 @@ Vector join string ::= {
 }
 
 Vector append (*) ::= {
-     len ::= $VECTOR_LEN($1)
-     $VECTOR_RESIZE($1, $ADD(len, 1))
-     $VECTOR_SET($1, len, $2)
+     $len ::= $VECTOR_LEN($1)
+     $VECTOR_RESIZE($1, $ADD($len, 1))
+     $VECTOR_SET($1, $len, $2)
 	   // RETURN:
 		 $1
 }
@@ -91,13 +91,13 @@ Vector filter (*) ::= {
   // Args:
   //  $1 = originalVector
   //  $2 = predicate function (f)
-  len ::= $VECTOR_LEN($1)
+  $len ::= $VECTOR_LEN($1)
   f ::= $2
 
   newVector ::= $VECTOR(0)
 
   iterator ::= $LAMBDA(i, {
-    $IF($GREATER(len, i), {
+    $IF($GREATER($len, i), {
       element ::= $VECTOR_GET($1, i)
       $IF(f(element), {
         // use the append operation to grow newVector
@@ -118,11 +118,11 @@ Vector forEach (*) ::= {
   // Args:
   //  $1 = originalVector
   //  $2 = function to call for each element (f)
-  len ::= $VECTOR_LEN($1)
+  $len ::= $VECTOR_LEN($1)
   f ::= $2
 
   iterator ::= $LAMBDA(i, {
-    $IF($GREATER(len, i), {
+    $IF($GREATER($len, i), {
       f($VECTOR_GET($1, i))
       iterator($ADD(i, 1))
     }, {})
@@ -138,11 +138,11 @@ Vector some (*) ::= {
   // Args:
   //  $1 = originalVector
   //  $2 = predicate function (f)
-  len ::= $VECTOR_LEN($1)
+  $len ::= $VECTOR_LEN($1)
   f ::= $2
 
   iterator ::= $LAMBDA(i, {
-    $IF($GREATER(len, i), {
+    $IF($GREATER($len, i), {
       $IF(f($VECTOR_GET($1, i)), {
         1
       }, {
@@ -159,11 +159,11 @@ Vector every (*) ::= {
   // Args:
   //  $1 = originalVector
   //  $2 = predicate function (f)
-  len ::= $VECTOR_LEN($1)
+  $len ::= $VECTOR_LEN($1)
   f ::= $2
 
   iterator ::= $LAMBDA(i, {
-    $IF($GREATER(len, i), {
+    $IF($GREATER($len, i), {
       $IF(f($VECTOR_GET($1, i)), {
         iterator($ADD(i, 1))
       }, $NIL())
@@ -178,11 +178,11 @@ Vector includes (*) ::= {
   // Args:
   //  $1 = originalVector
   //  $2 = value to check for
-  len ::= $VECTOR_LEN($1)
+  $len ::= $VECTOR_LEN($1)
   value ::= $2
 
   iterator ::= $LAMBDA(i, {
-    $IF($GREATER(len, i), {
+    $IF($GREATER($len, i), {
       element ::= $VECTOR_GET($1, i)
       $IF($EQUALS(element, value), {
         1
@@ -199,11 +199,11 @@ Vector indexOf (*) ::= {
   // Args:
   //  $1 = originalVector
   //  $2 = value to check for
-  len ::= $VECTOR_LEN($1)
+  $len ::= $VECTOR_LEN($1)
   value ::= $2
 
   iterator ::= $LAMBDA(i, {
-    $IF($GREATER(len, i), {
+    $IF($GREATER($len, i), {
       element ::= $VECTOR_GET($1, i)
       $IF($EQUALS(element, value), {
         i     // Match found: return current index
@@ -222,11 +222,11 @@ Vector zip Vector ::= {
   //  $1 = First Vector (left side)
   //  $2 = Second Vector (right side)
   
-  len1 ::= $VECTOR_LEN($1)
-  len2 ::= $VECTOR_LEN($2)
+  $len1 ::= $VECTOR_LEN($1)
+  $len2 ::= $VECTOR_LEN($2)
 
-  // Determine the shorter length (truncate to match)
-  limit ::= $IF($GREATER(len1, len2), len2, len1)
+  // Determine the shorter $length (truncate to match)
+  limit ::= $IF($GREATER($len1, $len2), $len2, $len1)
 
   newVector ::= $VECTOR(limit)
 
@@ -265,10 +265,10 @@ metaObject.(*) ::= {
     values ::= $CDR($UNTYPE($1))
     field ::= $QUOTE($2)
 
-		len ::= $VECTOR_LEN(fields)
+		$len ::= $VECTOR_LEN(fields)
 
 		finder ::= $LAMBDA(i, {
-         $IF($GREATER(len, i), {
+         $IF($GREATER($len, i), {
              element ::= $VECTOR_GET(fields, i)
              $IF($EQUALS(element, field), {
                  $VECTOR_GET(values, i)
@@ -298,7 +298,6 @@ $DECLARE_STRING ::= $LAMBDA(x, {
     index
   })
 })
-
 
 $LOAD("toolchain/types.gsm")
 $LOAD("toolchain/language/main.gsm")

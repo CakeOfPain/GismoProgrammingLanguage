@@ -2,16 +2,71 @@
 $LOAD("examples/runtime.gsm")
 
 
+Person = struct(name: str, age: i32)
+
+make[Person](self: Person, name: str, age: i32): Person {
+    self.name <- name
+    self.age <- age
+    self
+}
+
+new[Person](_name: str, _age: i32): Person {
+    self = heap(Person) {
+        name <- _name
+        age <- _age
+    }
+    self
+}
+
+getName[Person](self: Person): str {
+    self->name
+}
+
+setName[Person](self: Person, name: str): void {
+    self.name <- name
+}
+
+getAge[Person](self: Person): i32 {
+    self->age
+}
+
+setAge[Person](self: Person, age: i32): void {
+    self.age <- age
+}
+
+println[Person](self: Person): void {
+    print[str]("Name: ")
+    println[str](self->name)
+    print[str]("Age: ")
+    println[i32](self->age)
+}
+
+T ::= Person
+$LOAD("vector.gsm")     // Load our new vector library
+
 main(): i32 {
-    linkedList = makeLinkedList(stack(LinkedList))
+    // Create Persons
+    leo = make[Person](stack(Person), "Leo", 23)
+    peter = make[Person](stack(Person), "Peter", 30)
+    martin = make[Person](stack(Person), "Martin", 25)
 
-    append(linkedList, 2, stack(LinkedListNode))
-    append(linkedList, 3, stack(LinkedListNode))
-    append(linkedList, 4, stack(LinkedListNode))
+    // Initialize Vector with capacity 2
+    myVec = makeVector[Person](stack(Vector[Person]), 2)
 
-    printI32(getLengthOfList(linkedList))
-    puts("\n")
-    printList(linkedList)
+    // Push items (will trigger a resize on the 3rd push)
+    push[Person](myVec, leo)
+    push[Person](myVec, peter)
+    push[Person](myVec, martin)
+
+    // Print to verify
+    printVector[Person](myVec)
     
+    // Test random access
+    print[str]("Accessing Index 1: ")
+    p = getVectorAt[Person](myVec, 1)
+    println[Person](p)
+
+    releaseVector[Person](myVec)
+
     0
 }

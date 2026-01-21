@@ -1,0 +1,35 @@
+$LOAD("examples/runtime.gsm")
+
+vec3 = struct(x: f64, y: f64, z: f64)
+
+make[vec3] = macro(X,Y,Z) => stack(vec3) {x <- X; y <- Y; z <- Z}
+
+add[vec3] = macro(V, W) => {
+    u = stack(vec3)
+    u.x <- V->x + W->x
+    u.y <- V->y + W->y
+    u.z <- V->z + W->z
+    u
+}
+
+println[vec3](u: vec3): void {
+    print[f64](u->x)
+    print[str]("x + ")
+    print[f64](u->y)
+    print[str]("y + ")
+    print[f64](u->z)
+    println[str]("z")
+}
+
+Person = struct(name: str, age: i32)
+
+make[Person] = macro(NAME, AGE) => stack(Person) {name <- NAME; age <- AGE}
+
+main(): i32 {
+    leo = make[Person]("leo", i32(23))
+    println[str](leo->name)
+
+    
+
+    0
+}

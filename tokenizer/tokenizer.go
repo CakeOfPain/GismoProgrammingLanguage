@@ -13,8 +13,8 @@ type Token struct {
 	TokenType tokentype.TokenType
 	Source    string
 	Pos       int
-	Line      int    // NEW: Line number (1-based)
-	Column    int    // NEW: Column number (1-based)
+	Line      int // NEW: Line number (1-based)
+	Column    int // NEW: Column number (1-based)
 	Value     string
 	Alias     string
 	BinPrec   int
@@ -78,8 +78,9 @@ var binaryPrecedences = []struct {
 
 const FunctionCallPrecedence = 16
 const CurlyCallPrecedence = 14
+const SquareCallPrecedence = 16 // NEW: Precedence for a[...]
 const identifierPrecedence = 4
-const UnaryPrecedence = 15 
+const UnaryPrecedence = 15
 
 // Tokenize converts the input code into a list of tokens.
 func Tokenize(code string, source string) []*Token {

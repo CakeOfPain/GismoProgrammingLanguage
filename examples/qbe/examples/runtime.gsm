@@ -6,7 +6,7 @@ $WRITE("
 
 data $fmtPrintI32 = {b \"%d\", b 0}
 
-function $printI32(w %value) {
+function $printi32(w %value) {
 @start
     call $printf(l $fmtPrintI32, ..., w %value)
     ret
@@ -14,7 +14,7 @@ function $printI32(w %value) {
 
 data $fmtPrintF64 = {b \"%f\", b 0}
 
-function $printF64(d %value) {
+function $printf64(d %value) {
 @start
     call $printf(l $fmtPrintF64, ..., d %value)
     ret
@@ -29,7 +29,7 @@ function $readI32(l %addr) {
 }
 
 data $fmtPrintStr = {b \"%s\", b 0}
-function $printStr(l %string) {
+function $printstr(l %string) {
 @start
     call $printf(l $fmtPrintStr, ..., l %string)
     ret
@@ -44,18 +44,22 @@ function l $getStdInOut(w %fd) {
 
 ")
 
-printI32(value: i32): void
-printF64(value: f64): void
+print[i32](value: i32): void
+print[f64](value: f64): void
 readI32(value: ref(i32)): void
 getStdInOut(fd: i32): i64
-printStr(value: str): void
+print[str](value: str): void
 fflush(fd: i64): void
 exit(status: i32): void
+fopen(path: str, mode: str): i64
+fclose(fd: i64): void
+fread(buffer: ref(i8), size: i64, count: i64, fd: i64): void
 
 puts(m: str): void
 putchar(c: i8): void
 getchar(): i8
 strlen(s: str): i64
+strcat(d: str, s: str): void
 fgets(m: ref(i8), s: i64, f: i64): void
 
 malloc(size: i64): i64
@@ -83,6 +87,15 @@ heap(STRUCTDEF) ::= {
     $TYPEDEF($Value($2, $UNTYPE(r).addr), VALUE_STRUCT)
 }
 
+heap(TYPE_SCALAR_I64) ::= {
+    scalar ::= $UNTYPE($2)
+    type ::= $CAR(scalar)
+    value ::= $CDR(scalar)
+
+    r = malloc(sizeof(type) * value)
+    $TYPEDEF($Value(ref(type), $UNTYPE(r).addr), VALUE_REF)
+}
+
 release(VALUE_REF) ::= {
     addr ::= $TYPEDEF($Value(i64, $UNTYPE($2).addr), VALUE_I64)
     free(addr)
@@ -91,4 +104,34 @@ release(VALUE_REF) ::= {
 release(VALUE_STRUCT) ::= {
     addr ::= $TYPEDEF($Value(i64, $UNTYPE($2).addr), VALUE_I64)
     free(addr)
+}
+
+println[i32](value: i32): void {
+    print[i32](value)
+    print[str]("\n")
+}
+
+println[f64](value: f64): void {
+    print[f64](value)
+    print[str]("\n")
+}
+
+println[str](value: str): void {
+    puts(value)
+}
+
+
+VALUE_STR + VALUE_STR ::= {
+    str_a = $1
+    str_b = $2
+    len_a = strlen(str_a)
+    len_b = strlen(str_b)
+
+    newbuffer = stack(i8 * (len_a * len_b + 1))
+    newbuffer(0) <- i8(0)
+
+    strcat(str(newbuffer), str_a)
+    strcat(str(newbuffer), str_b)
+
+    str(newbuffer)
 }

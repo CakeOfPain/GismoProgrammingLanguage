@@ -1,0 +1,36 @@
+$LOAD("examples/runtime.gsm")
+
+File = struct(path: str)
+
+make[File] = macro(PATH) => stack(File) {path <- PATH}
+
+open[File] = macro(FILE, VAR_CONTENT, CODE) => {
+    // Open File
+    FD = fopen(FILE->path, "r")
+
+    // Read File
+    BUFFER = stack(i8*1000)
+    fread(BUFFER, 1, 1000, FD)
+
+    VAR_CONTENT = str(BUFFER)
+
+    // Use File (User defined)
+    {CODE}
+
+    // Close File
+    fclose(FD)
+}
+
+main(): i32 {
+    file = make[File]("./helloWorld.txt")
+
+    open[File](file, content, {
+        println[str](content)
+    })
+
+    open[File](make[File]("./filesystem.gsm"), content, {
+        println[str](content)
+    })
+
+    0
+}

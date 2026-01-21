@@ -1,0 +1,89 @@
+// 1. Forward declaration to register the generic type
+Vector[T] = struct
+// 2. Define struct with explicit types. 'items' is a reference (pointer) to T
+Vector[T] = struct(count: i32, capacity: i32, items: ref(T))
+
+// Helper: Recursively copies elements. src and dest are pointers (ref(T))
+copyVectorData[T](src: ref(T), dest: ref(T), index: i32, limit: i32): void {
+    if (index == limit) return
+    
+    // Read from source: deref(src(index))
+    val = deref(src(index))
+    
+    // Write to dest: dest(index) <- val
+    dest(index) <- val
+    
+    // Loop with explicit cast for +1 if needed, though + usually handles literals
+    // passing i32(1) just to be safe if your + operator is strict
+    continue(src, dest, index + 1, limit)
+}
+
+makeVector[T](vec: Vector[T], initialCapacity: i32): Vector[T] {
+    // 3. Explicit cast for assignment
+    vec.count <- i32(0)
+    vec.capacity <- initialCapacity
+    
+    // Allocate array on heap. heap returns a ref, which matches ref(T)
+    vec.items <- heap(T * initialCapacity) 
+    vec
+}
+
+getVectorAt[T](vec: Vector[T], index: i32): T {
+    // Access: deref(items(index))
+    deref(vec->items(index))
+}
+
+setVectorAt[T](vec: Vector[T], index: i32, value: T): void {
+    vec->items(index) <- value
+}
+
+push[T](vec: Vector[T], value: T): void {
+    // Check if resize is needed
+    if (vec->count == vec->capacity) then {
+        
+        oldCap = vec->capacity
+        newCap = oldCap * 2
+        
+        // Allocate new bigger memory block
+        newItems = heap(T * newCap)
+        oldItems = vec->items
+
+        // Copy data passing 0 as i32
+        copyVectorData[T](oldItems, newItems, i32(0), oldCap)
+
+        // release old array
+        release(vec->items)
+
+        // Point vector to new memory
+        vec.items <- newItems
+        vec.capacity <- newCap
+    }
+
+    // Insert new value
+    idx = vec->count
+    vec->items(idx) <- value
+    vec.count <- vec->count + 1
+}
+
+// Helper to print all items in vector
+printVectorLoop[T](vec: Vector[T], index: i32): void {
+    if (index == vec->count) return
+    
+    val = getVectorAt[T](vec, index)
+    println[T](val)
+    
+    continue(vec, index + 1)
+}
+
+printVector[T](vec: Vector[T]): void {
+    print[str]("Vector Content (Size: ")
+    print[i32](vec->count)
+    println[str]("):")
+    
+    // Start loop at 0 (casted)
+    printVectorLoop[T](vec, i32(0))
+}
+
+releaseVector[T](vec: Vector[T]): void {
+    release(vec->items)
+}

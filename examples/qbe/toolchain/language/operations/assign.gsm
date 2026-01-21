@@ -92,7 +92,7 @@ VALUE_REF $STORE2MEM (*) ::= {
     value     ::= $UNTYPE($2)
     type      ::= $UNTYPE(value.type)
     metatype  ::= $UNTYPE($UNTYPE(ref.type).metaData)
-    // TODO: Saidly this is not going to give good errors
+
     $IF($EQUALS(type.id, metatype.id), {
         $WRITE("\t")
         $WRITE("store")

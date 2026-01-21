@@ -62,6 +62,7 @@ func Builtins() []BuiltinFunction {
         {callback: ifFunc, identifier: "$IF"},
         {callback: whiler, identifier: "$WHILE"},
         {callback: foreacher, identifier: "$FOREACH"},
+        {callback: doer, identifier: "$DO"},
 
         // Scope & Variables
         {callback: def, identifier: "$DEF"},
@@ -998,4 +999,16 @@ func unionselector(args Value, scope *Scope) Value {
     }
 
     return unionVal
+}
+
+func doer(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    if len(argsList) < 1 {
+        return &Nil{}
+    }
+    var result Value = &Nil{}
+    for _, arg := range argsList {
+        result = interpretExpression(arg, scope)
+    }
+    return result
 }
