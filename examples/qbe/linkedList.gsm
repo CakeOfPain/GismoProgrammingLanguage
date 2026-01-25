@@ -3,7 +3,8 @@ LinkedListNode[T] = struct
 LinkedListNode[T] = struct(value: T, next: LinkedListNode[T])
 LinkedList[T] = struct(count: i32, head: LinkedListNode[T])
 
-makeLinkedList[T](list: LinkedList[T]): LinkedList[T] {
+makeLinkedList[T] = macro() => {
+    list = stack(LinkedList[T])
     list.count <- i32(0)
     list.head <- null
     list

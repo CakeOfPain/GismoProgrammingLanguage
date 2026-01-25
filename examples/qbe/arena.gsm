@@ -1,0 +1,17 @@
+
+Arena[T] = struct(values: ref(T), amount: i64, ptr: i64)
+
+make[Arena[T]] = macro(SIZE) => {
+    stack(Arena[T]) {
+        values <- stack(T * SIZE)
+        amount <- i64(SIZE)
+        ptr <- 0
+    }
+}
+
+allocate[Arena[T]](self: Arena[T]): ref(T) {
+    if(self->amount == self->ptr) return null
+    index = self->ptr
+    self.ptr <- self->ptr + 1
+    self->values(index)
+}

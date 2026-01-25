@@ -1,45 +1,80 @@
 
-VALUE_STRUCT . (*) ::= {
-    value ::= $UNTYPE($1)
+VALUE_STR . (*) ::= {
+    value ::= $1
     field ::= $QUOTE($2)
 
     $IF($TYPEOF(field, symbol), {}, $RAISE($$, "Expected a symbol as field"))
 
-    foundFields ::= $VECTOR(0)
-    offset ::= $VECTOR(1)
-    $VECTOR_SET(offset, 0, 0)
+    $IF($TYPEOF($EVAL(field[str]), FunctionProto), {
+        $TYPEDEF($CONS($1, $EVAL(field[str])), PIPED_VALUE)
+    }, {
+        $RAISE($$, "No Method defined for this symbol")
+    })
+}
 
-    // Get field from struct
-    $FOREACH($UNTYPE(value.type).metaData, x, {
-        $IF($EQUALS($CAR($QUOTE(x)), field), {
-            foundFields append $QUOTE(x)
+string . (*) ::= {
+    value ::= $1
+    field ::= $QUOTE($2)
+
+    $IF($TYPEOF(field, symbol), {}, $RAISE($$, "Expected a symbol as field"))
+
+    $IF($TYPEOF($EVAL(field[str]), FunctionProto), {
+        $TYPEDEF($CONS($1, $EVAL(field[str])), PIPED_VALUE)
+    }, {
+        $RAISE($$, "No Method defined for this symbol")
+    })
+}
+
+VALUE_STRUCT . (*) ::= {
+    value ::= $UNTYPE($1)
+    field ::= $QUOTE($2)
+    typeOfStruct ::= value.type
+
+    $IF($TYPEOF(field, symbol), {}, $RAISE($$, "Expected a symbol as field"))
+
+    $IF($TYPEOF($EVAL(field[typeOfStruct]), MACRO), {
+        $TYPEDEF($CONS($1, $EVAL(field[typeOfStruct])), PIPED_VALUE)
+    }, {
+        $IF($TYPEOF($EVAL(field[typeOfStruct]), FunctionProto), {
+            $TYPEDEF($CONS($1, $EVAL(field[typeOfStruct])), PIPED_VALUE)
         }, {
+            foundFields ::= $VECTOR(0)
+            offset ::= $VECTOR(1)
+            $VECTOR_SET(offset, 0, 0)
+
+            // Get field from struct
+            $FOREACH($UNTYPE(value.type).metaData, x, {
+                $IF($EQUALS($CAR($QUOTE(x)), field), {
+                    foundFields append $QUOTE(x)
+                }, {
+                    $IF($EQUALS($VECTOR_LEN(foundFields), 0), {
+                        $VECTOR_SET(offset, 0, $VECTOR_GET(offset, 0) + $UNTYPE($CDR($QUOTE(x))).memory_size)
+                    }, {})
+                })
+            })
+
             $IF($EQUALS($VECTOR_LEN(foundFields), 0), {
-                $VECTOR_SET(offset, 0, $VECTOR_GET(offset, 0) + $UNTYPE($CDR($QUOTE(x))).memory_size)
+                $RAISE($2, "Fieldname not a member of this struct (" + field + ")")
             }, {})
+
+            foundField ::= $VECTOR_GET(foundFields, 0)
+            subType ::= $CDR(foundField)
+
+            addr ::= $NEWADDR()
+
+            $WRITE("\t")
+            $WRITE(addr)
+            $WRITE(" =l add ")
+            $WRITE(value.addr)
+            $WRITE(", ")
+            $WRITE($VECTOR_GET(offset, 0))
+            $WRITE("\n")
+
+            reference ::= $TYPEDEF($Value(ref(subType), addr), VALUE_REF)
+
+            reference
         })
     })
-
-    $IF($EQUALS($VECTOR_LEN(foundFields), 0), {
-        $RAISE($2, "Fieldname not a member of this struct (" + field + ")")
-    }, {})
-
-    foundField ::= $VECTOR_GET(foundFields, 0)
-    subType ::= $CDR(foundField)
-
-    addr ::= $NEWADDR()
-
-    $WRITE("\t")
-    $WRITE(addr)
-    $WRITE(" =l add ")
-    $WRITE(value.addr)
-    $WRITE(", ")
-    $WRITE($VECTOR_GET(offset, 0))
-    $WRITE("\n")
-
-    reference ::= $TYPEDEF($Value(ref(subType), addr), VALUE_REF)
-
-    reference
 }
 
 VALUE_STRUCT -> (*) ::= deref($1.($2))

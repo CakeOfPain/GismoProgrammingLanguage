@@ -1,0 +1,28 @@
+
+Smart[T] = struct(ptr: T, count: i64)
+
+smart[T] = macro(VALUE_PTR) => heap(Smart[T]) {
+    ptr <- VALUE_PTR
+    count <- 1
+}
+
+use[Smart[T]] = macro(SMART_PTR) => SMART_PTR->ptr
+getCount[Smart[T]] = macro(SMART_PTR) => SMART_PTR->count
+setCount[Smart[T]] = macro(SMART_PTR, COUNT) => (SMART_PTR.count <- i64(COUNT))
+copy[Smart[T]] = macro(SMART_PTR) => {
+    ptr = SMART_PTR
+    ptr.setCount(ptr.getCount() + 1)
+    ptr
+}
+
+done[Smart[T]] = macro(SMART_PTR) => SMART_PTR.destruct()
+
+destruct[Smart[T]](smartptr: Smart[T]): void {
+    smartptr.setCount(smartptr.getCount() - 1)
+
+    if(smartptr.getCount() == 0) then {
+        "releasing ptr".println()
+        release(smartptr->ptr)
+        release(smartptr)
+    }
+}

@@ -77,6 +77,8 @@ VoidFunctionProto : (*) ::= {
     fn_prototype
 }
 
+FunctionProto = (*) ::= $1 {$2}
+
 FunctionProto{*} ::= {
     functionProtoTyped ::= $1
     functionProto ::= $UNTYPE(functionProtoTyped)
@@ -110,19 +112,29 @@ FunctionProto{*} ::= {
             typeName ::= TYPE2TYPENAME($UNTYPE(functionProtoTyped).returnType)
             nativeType ::= TYPE2NATIVE($UNTYPE(functionProtoTyped).returnType)
             prefix ::= $UNTYPE($UNTYPE(functionProtoTyped).returnType).prefix
-
-            isCorrectType ::= $EVAL($REPLACE($QUOTE($TYPEOF(result, T)), T, typeName))
-            isNativeType ::= $EVAL($REPLACE($QUOTE($TYPEOF(result, T)), T, nativeType))
-
-            $IF(isNativeType, {
-                $WRITE($CAT(prefix, result))
-            }, $IF(isCorrectType, {
-                $WRITE($UNTYPE(result).addr)
+            $IF($TYPEOF(result, null), {
+                $IF($EQUALS(typeName, VALUE_REF), { // yes
+                    // accept
+                    $WRITE("0")
+                }, { // no
+                    $LAMBDA(x, {
+                        $RAISE(x, "Function requires return value to match with the return type")
+                    })(blame)
+                })
             }, {
-                $LAMBDA(x, {
-                    $RAISE(x, "Function requires return value to match with the return type")
-                })(blame)
-            }))
+                isCorrectType ::= $EVAL($REPLACE($QUOTE($TYPEOF(result, T)), T, typeName))
+                isNativeType ::= $EVAL($REPLACE($QUOTE($TYPEOF(result, T)), T, nativeType))
+
+                $IF(isNativeType, {
+                    $WRITE($CAT(prefix, result))
+                }, $IF(isCorrectType, {
+                    $WRITE($UNTYPE(result).addr)
+                }, {
+                    $LAMBDA(x, {
+                        $RAISE(x, "Function requires return value to match with the return type")
+                    })(blame)
+                }))
+            })
         })
     }))
 

@@ -90,3 +90,17 @@ FunctionProto(*) ::= {
     template ::= $QUOTE($TYPEDEF($Value(fn_meta.returnType, retAddr), X))
     $EVAL($REPLACE(template, X, $UNTYPE(fn_meta.returnType).typeName))
 }
+
+
+PIPED_VALUE(*) ::= {
+    FUNCTION ::= $CDR($UNTYPE($1))
+    STRUCT ::= $CAR($UNTYPE($1))
+
+    FUNCTION(STRUCT, $2)
+}
+
+PIPED_VALUE() ::= {
+    FUNCTION ::= $CDR($UNTYPE($1))
+    STRUCT ::= $CAR($UNTYPE($1))
+    FUNCTION(STRUCT)
+}
