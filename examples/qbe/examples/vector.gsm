@@ -1,3 +1,4 @@
+
 // 1. Forward declaration to register the generic type
 Vector[T] = struct
 // 2. Define struct with explicit types. 'items' is a reference (pointer) to T

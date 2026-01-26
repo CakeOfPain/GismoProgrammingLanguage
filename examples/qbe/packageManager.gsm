@@ -1,58 +1,12 @@
 
-// import (
-//     examples/vector[i32]
-// )
-
 $LOAD("examples/runtime.gsm")
 
-Person = struct(name: str, age: i32)
-make[Person] = macro(NAME, AGE) => stack(Person) {name <- NAME; age <- i32(AGE)}
-new[Person] = macro(NAME, AGE) => heap(Person) {name <- NAME; age <- i32(AGE)}
+main(argc: i32, argv: ref(str)): i32 {
+    cmdArgs = make[CmdArgs](argc, argv)
 
-getName[Person] = macro(person) => {
-    person->name
-}
-
-setAge[Person] = macro(PERSON, AGE) => {
-    PERSON.age <- i32(AGE)
-}
-
-greet[Person](self: Person, other: Person): void {
-    self.getName().print()
-    " says hello to ".print()
-    other.getName().println()
-}
-
-destruct[Person] = macro(PERSON) => {
-    "From inside of the destructor".println()
-    release(PERSON)
-}
-
-with = macro(OBJ, VAR, CODE) => {
-    VAR = OBJ
-    {CODE}
-    VAR.destruct()
-}
-
-T::=Person;$LOAD("smartptr.gsm")
-T::=ref(i64);$LOAD("smartptr.gsm")
-
-main(): i32 {
-
-    leo = smart[Person](new[Person]("Leo", 23))
-
-    leo.use().getName().println()
-    leo.use().getName().println()
-
-    leo.done()
-
-    myInteger = smart[ref(i64)](heap(30))
-    otherInteger = smart[ref(i64)](heap(40))
-
-    println[i64](deref(myInteger.use()) + deref(otherInteger.use()))
-
-    myInteger.done()
-    otherInteger.done()
+    if (cmdArgs.hasFlag("-o")) then {
+        
+    }
 
     0
 }

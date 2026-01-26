@@ -91,6 +91,7 @@ func Builtins() []BuiltinFunction {
         {callback: printScope, identifier: "$SCOPE"},
         {callback: catSym, identifier: "$SYMCAT"},
         {callback: suggester, identifier: "$SUGGEST"},
+        {callback: pathResolver, identifier: "$PATH"},
     }
 }
 
@@ -586,6 +587,7 @@ func writeByte2Output(args Value, scope *Scope) Value {
 func niler(args Value, scope *Scope) Value {
     return &Nil{}
 }
+
 func loadFile(args Value, scope *Scope) Value {
     argsList := getArgsList(args)
     if len(argsList) < 1 {
@@ -1011,4 +1013,26 @@ func doer(args Value, scope *Scope) Value {
         result = interpretExpression(arg, scope)
     }
     return result
+}
+
+func pathResolver(args Value, scope *Scope) Value {
+    argsList := getArgsList(args)
+    if len(argsList) < 1 {
+        return &Nil{}
+    }
+    rawPath := interpretExpression(argsList[0], scope).String()
+
+    absPath, err := filepath.Abs(rawPath)
+    if err != nil {
+        return &Nil{}
+    }
+
+    canonicalPath, err := filepath.EvalSymlinks(absPath)
+    if err != nil {
+        return &Nil{}
+    }
+
+    return &String{
+        Value: canonicalPath,
+    }
 }

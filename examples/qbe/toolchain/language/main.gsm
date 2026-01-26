@@ -10,6 +10,7 @@ $KEYWORD(struct)
 $KEYWORD(sizeof)
 $KEYWORD(null)
 $KEYWORD(macro)
+$KEYWORD(import)
 
 $NEWADDR() ::= $CAT("%t", $IOTA())
 
@@ -140,5 +141,80 @@ symbol = TYPE ::= {
         parentType.memory_size // memory_size 
     ), TYPE))
 }
+
+// Imports
+IMPORTED_MODULES ::= $VECTOR(0)
+import(*) ::= $DO(
+    ($IMPORTS ::= $FLATTEN($QUOTE($2), ",")),
+    ($IMPORTING ::= $VECTOR(0)),
+
+    {
+        IMPORT_PATH.(*) ::= {
+            path ::= $UNTYPE($1) 
+            folder ::= $QUOTE($2)
+            
+            new_path ::= $CAT(path, $CAT("/", folder))
+
+            $TYPEDEF(new_path, IMPORT_PATH)
+        }
+
+        IMPORT_PATH[*] ::= {
+            path ::= $UNTYPE($1)
+            arguments ::= $FLATTEN($QUOTE($2), ",")
+            $TYPEDEF($CONS(path, arguments), TEMPLATE_IMPORT_PATH)
+        }
+
+        TEMPLATE_IMPORT_PATH(*) ::= {
+            value ::= $UNTYPE($1)
+            arguments ::= $FLATTEN($QUOTE($2), ",")
+
+            obj ::= $struct(path, argNames, argVals)($CAR(value), $CDR(value), arguments)
+
+            $TYPEDEF(obj, ARGUMENT_IMPORT_PATH)
+        }
+
+        $FOREACH($IMPORTS, imp, {
+            project ::= $TYPEDEF(".", IMPORT_PATH)
+
+            value ::= $EVAL(imp)
+            $IF($TYPEOF(value, IMPORT_PATH), {
+                path ::= $PATH($UNTYPE(value)  + ".gsm")
+                $IF(IMPORTED_MODULES includes path, {}, {
+                    IMPORTED_MODULES append path
+                    $IMPORTING append value
+                })
+            }, $IF($TYPEOF(value, ARGUMENT_IMPORT_PATH), {
+                importTemplate ::= $UNTYPE(value)
+                path ::= $PATH(importTemplate.path + ".gsm") + "@" + (importTemplate.argNames join "|") + "@" + (importTemplate.argVals join "|")
+
+                $IF(IMPORTED_MODULES includes path, {}, {
+                    IMPORTED_MODULES append path
+                    $IMPORTING append value
+                })
+            }, {
+                $RAISE($$, "Syntax Error within import statement")
+            }))
+        })
+    },
+
+    $FOREACH($IMPORTING, $X,
+        $IF($TYPEOF($X, IMPORT_PATH), $DO(
+            // CASE: IMPORT_PATH
+            $LOAD($UNTYPE($X) + ".gsm")
+        ), $IF($TYPEOF($X, ARGUMENT_IMPORT_PATH), $DO(
+            // CASE: ARGUMENT_IMPORT_PATH
+            ($IMPORTPATH ::= $UNTYPE($X)),
+            $FOREACH($IMPORTPATH.argNames zip $IMPORTPATH.argVals, arg, $DO(
+                (argName ::= $CAR($QUOTE(arg))),
+                (argVal  ::= $EVAL($CDR($QUOTE(arg)))),
+                $EVAL($REPLACE($QUOTE(V ::= argVal), V, argName))
+            )),
+            $LOAD($IMPORTPATH.path + ".gsm")
+        ), $DO(
+            // CASE: OTHER
+            $RAISE($$, "Syntax Error within import statement")
+        )))
+    )
+)
 
 $LOAD("toolchain/language/functiondef.gsm")

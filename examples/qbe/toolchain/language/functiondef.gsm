@@ -87,8 +87,8 @@ FunctionProto{*} ::= {
 
     // Write "export function" if address is main, otherwise "function"
     $IF($EQUALS(functionProto.addr, "main"), 
-        $WRITE("export function "), 
-        $WRITE("function ")
+        $WRITE("export function "), // yes
+        $WRITE("function ") // no
     )
 
     $WRITE($UNTYPE(functionProto.returnType).nativeType)

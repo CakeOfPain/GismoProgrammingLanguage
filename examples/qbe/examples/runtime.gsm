@@ -135,3 +135,21 @@ VALUE_STR + VALUE_STR ::= {
 
     str(newbuffer)
 }
+
+with = macro(OBJ, VAR, CODE) => {
+    obj = OBJ
+    // unwrap
+    VAR = obj.use()
+
+    {CODE}
+
+    obj.done()
+}
+
+CmdArgs = struct(_argc: i32, _argv: ref(str))
+
+make[CmdArgs] = macro(ARGC, ARGV) => stack(CmdArgs) {
+    _argc <- ARGC
+    _argv <- ARGV
+}
+

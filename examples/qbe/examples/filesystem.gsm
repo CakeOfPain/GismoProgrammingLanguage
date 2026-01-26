@@ -1,0 +1,55 @@
+$LOAD("examples/runtime.gsm")
+
+File = struct(path: str, fd: i64, buff: ref(i8))
+
+make[File] = macro(PATH) => stack(File) {path <- PATH}
+
+open[File] = macro(FILE, VAR_CONTENT, CODE) => {
+    // Open File
+    FD = fopen(FILE->path, "r")
+
+    // Read File
+    BUFFER = stack(i8*1000)
+    fread(BUFFER, 1, 1000, FD)
+
+    VAR_CONTENT = str(BUFFER)
+
+    // Use File (User defined)
+    {CODE}
+
+    // Close File
+    fclose(FD)
+}
+
+use[File] = macro(FILE) => {
+    file = FILE
+    file.fd <- fopen(file->path, "r")
+
+    // Read File
+    file.buff <- heap(i8*1000)
+    fread(file->buff, 1, 1000, file->fd)
+
+    str(file->buff)
+}
+
+done[File] = macro(FILE) => {
+    file = FILE
+    fclose(file->fd)
+    release(file->buff)
+}
+
+with = macro(OBJ, VAR, CODE) => {
+    obj = OBJ
+    // unwrap
+    VAR = obj.use()
+
+    {CODE}
+
+    obj.done()
+}
+
+main(argc: i32, argv: ref(str)): i32 {
+
+    
+    0
+}

@@ -1,10 +1,23 @@
 
-$LOAD("examples/runtime.gsm")
-
-
+import(
+    project.examples.runtime,
+    project.examples.vector[T](i32),
+    project.examples.vector[T](i32),
+    project.examples.vector[T](str)
+)
 
 main(): i32 {
+    vector = makeVector[i32](stack(Vector[i32]), 10)
+    vector2 = makeVector[str](stack(Vector[str]), 10)
 
+    push[i32](vector, 30)
+    push[i32](vector, 74172)
+    push[str](vector2, "Hello World!")
 
+    printVector[i32](vector)
+    printVector[str](vector2)
+
+    releaseVector[str](vector)
+    releaseVector[i32](vector2)
     0
 }
