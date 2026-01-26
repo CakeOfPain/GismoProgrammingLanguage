@@ -24,11 +24,11 @@ open[File] = macro(FILE, VAR_CONTENT, CODE) => {
 main(): i32 {
     file = make[File]("./helloWorld.txt")
 
-    open[File](file, content, {
+    file.open(content, {
         println[str](content)
     })
 
-    open[File](make[File]("./filesystem.gsm"), content, {
+    make[File]("./filesystem.gsm").open(content, {
         println[str](content)
     })
 

@@ -60,6 +60,33 @@ Vector map (*) ::= {
 			newVector
 }
 
+Vector + Vector ::= {
+  a ::= $1
+  b ::= $2
+  len_a ::= $VECTOR_LEN(a)
+  len_b ::= $VECTOR_LEN(b)
+  len ::= $ADD(len_a, len_b)
+  newVec ::= $VECTOR(len)
+
+  f ::= $LAMBDA(i, {
+    $IF($EQUALS(i, len_a), {}, {
+      $VECTOR_SET(newVec, i, $VECTOR_GET(a, i))
+      f($ADD(i, 1))
+    })
+  })
+  f(0)
+
+  f ::= $LAMBDA(i, {
+    $IF($EQUALS(i, len_b), {}, {
+      $VECTOR_SET(newVec, $ADD(len_a, i), $VECTOR_GET(b, i))
+      f($ADD(i, 1))
+    })
+  })
+  f(0)
+
+  newVec
+}
+
 Vector join string ::= {
   $len ::= $VECTOR_LEN($1)
   seperator ::= $2
@@ -242,6 +269,31 @@ Vector zip Vector ::= {
 
   iterator(0)
   newVector
+}
+
+Vector unflatten (*) ::= {
+	values ::= $1
+  operator ::= $QUOTE($2)
+  len ::= $VECTOR_LEN(values)
+
+	f ::= $LAMBDA(tree, $LAMBDA(i, {
+    $IF($EQUALS(i, len), {
+  		tree
+  	}, {
+    	value ::= $VECTOR_GET(values, i)
+	  	f($CONS(operator, $CONS(tree, $CONS(value, $NIL()))))($ADD(i,1))
+  	})
+  }))
+
+  $IF($EQUALS(len, 0), {
+    $NIL()
+  }, {
+    $IF($EQUALS(len, 1), {
+      $VECTOR_GET(values, 0)
+    }, {
+	    f($VECTOR_GET(values, 0))(1)
+    })
+  })
 }
 
 // COMPOSITE

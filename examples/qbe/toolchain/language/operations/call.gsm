@@ -96,7 +96,10 @@ PIPED_VALUE(*) ::= {
     FUNCTION ::= $CDR($UNTYPE($1))
     STRUCT ::= $CAR($UNTYPE($1))
 
-    FUNCTION(STRUCT, $2)
+    ARGUMENTS ::= ($FLATTEN(STRUCT, ",") + $FLATTEN($QUOTE($2), ",")) unflatten (,)
+
+    template ::= $QUOTE(FUNCTION(X))
+    $EVAL($REPLACE(template, X, ARGUMENTS))
 }
 
 PIPED_VALUE() ::= {
