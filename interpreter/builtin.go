@@ -606,32 +606,21 @@ func loadFile(args Value, scope *Scope) Value {
         return &Nil{}
     }
 
-    var programValue Value
-
     if cached, found := fileLoadCache[canonicalPath]; found {
-        programValue = cached
-    } else {
-        bytes, err := os.ReadFile(canonicalPath)
-        if err != nil {
-            return &Nil{}
-        }
-
-        tokens := tokenizer.Tokenize(string(bytes), canonicalPath)
-        ast := parser.Parse(tokens, canonicalPath)
-        programValue = syntaxNode2Value(ast)
-
-        fileLoadCache[canonicalPath] = programValue
+        return cached
     }
 
-    if consCell, ok := programValue.(*ConsCell); ok {
-        for i := 1; i < consCell.Length(); i++ {
-            interpretExpression(consCell.Get(i), scope)
-        }
-    } else {
-        interpretExpression(programValue, scope)
+    bytes, err := os.ReadFile(canonicalPath)
+    if err != nil {
+        return &Nil{}
     }
 
-    return &Nil{}
+    tokens := tokenizer.Tokenize(string(bytes), canonicalPath)
+    ast := parser.Parse(tokens, canonicalPath)
+    programValue := syntaxNode2Value(ast)
+
+    fileLoadCache[canonicalPath] = programValue
+    return programValue
 }
 
 func exporter(args Value, scope *Scope) Value {
